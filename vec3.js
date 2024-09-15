@@ -1,74 +1,72 @@
 import {epsilon} from "./epsilon.js"
 
-export class Vec3 {
-    constructor(x,y,z){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
+export function create(){
+    return new Float32Array([0,0,0]);
+}
 
-    static from_array(a){
-        return new Vec3(a[0],a[1],a[2]);
-    }
+export function from_values(x,y,z){
+    return new Float32Array([x,y,z]);
+}
 
-    static from_array_array(a){
-        var va = [];
-        for (var i = 0; i < a.length; i++){
-            va.push(Vec3.from_array(a[i]));
-        }
-        return va;
-    }
+export function clone(v){
+    return new Float32Array(v);
+}
 
-    add(v){
-        return new Vec3(
-            this.x + v.x,
-            this.y + v.y,
-            this.z + v.z
-        );
-    }
+export function from_array(arr){
+    return new Float32Array(arr);
+}
 
-    sub(v){
-        return new Vec3(
-            this.x - v.x,
-            this.y - v.y,
-            this.z - v.z
-        );
+export function from_array_array(arr){
+    var va = [];
+    for (var i = 0; i < arr.length; i++){
+        va.push(from_array(arr[i]));
     }
+    return va;
+}
 
-    scale(s){
-        return new Vec3(
-            this.x * s,
-            this.y * s,
-            this.z * s
-        );
-    }
+export function add(out,a,b){
+    out[0] = a[0] + b[0];
+    out[1] = a[1] + b[1];
+    out[2] = a[2] + b[2];
+}
 
-    dot(v){
-        return this.x*v.x + this.y*v.y + this.z*v.z;
-    }
+export function sub(out,a,b){
+    out[0] = a[0] - b[0];
+    out[1] = a[1] - b[1];
+    out[2] = a[2] - b[2];
+}
 
-    cross(v){
-        return new Vec3(
-            this.y * v.z - this.z * v.y,
-            this.z * v.x - this.x * v.z,
-            this.x * v.y - this.y * v.x
-        );
-    }
+export function scale(out,a,s){
+    out[0] = a[0] * s;
+    out[1] = a[1] * s;
+    out[2] = a[2] * s;
+}
 
-    normalize(){
-        var invmag = 1.0 / Math.sqrt(this.dot(this));
-        return this.scale(invmag);
-    }
+export function dot(a,b){
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
 
-    negate(){
-        this.x *= -1;
-        this.y *= -1;
-        this.z *= -1;
-    }
+export function cross(out,a,b){
+    var ac = clone(a);
+    var bc = clone(b);
+    out[0] = ac[1]*bc[2] - ac[2]*bc[1];
+    out[1] = ac[2]*bc[0] - ac[0]*bc[2];
+    out[2] = ac[0]*bc[1] - ac[1]*bc[0];
+}
 
-    equal(v){
-        return Math.abs(this.x - v.x) <= epsilon &&
-               Math.abs(this.y - v.y) <= epsilon &&
-               Math.abs(this.z - v.z) <= epsilon;
-    }
+export function normalize(out,a){
+    var invmag = 1.0 / Math.sqrt(dot(a,a));
+    scale(out,a,invmag);
+}
+
+export function negate(out,a){
+    out[0] = -a[0];
+    out[1] = -a[1];
+    out[2] = -a[2];
+}
+
+export function equal(a,b){
+    return Math.abs(a[0] - b[0]) <= epsilon &&
+           Math.abs(a[1] - b[1]) <= epsilon &&
+           Math.abs(a[2] - b[2]) <= epsilon;
 }
