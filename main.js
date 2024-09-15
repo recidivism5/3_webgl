@@ -1,6 +1,7 @@
 import {ConvexPolyhedron} from "./convex_polyhedron.js"
 import * as Vec3 from "./vec3.js"
 import * as Mat4Stack from "./mat4_stack.js"
+import * as ShapeGen from "./shapegen.js"
 
 async function main(){
     var canvas = document.querySelector("#canvas");
@@ -50,10 +51,7 @@ async function main(){
 
     var tetrahedron = new ConvexPolyhedron(
         gl,
-        Vec3.from_array_array([
-            [0,0,0],[1,0,0],[1,1,0],[0,1,0],
-            [0,0,1],[1,0,1],[1,1,1],[0,1,1]
-        ])
+        ShapeGen.cylinder(1,2,8)
     );
 
     function frame(now){
@@ -76,7 +74,6 @@ async function main(){
         Mat4Stack.rotate_x(30);
         Mat4Stack.translate(0,-2,-3);
         Mat4Stack.rotate_y(now*90);
-        Mat4Stack.translate(-0.5,-0.5,-0.5);
         Mat4Stack.mode(Mat4Stack.PROJECTION);
         Mat4Stack.load_identity();
         Mat4Stack.perspective(90,canvas.width/canvas.height,0.01,100.0);
