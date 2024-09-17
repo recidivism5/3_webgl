@@ -1,5 +1,5 @@
 import {ConvexPolyhedron} from "./convex_polyhedron.js"
-import * as Vec3 from "./vec3.js"
+import {Vec3} from "./vec3.js"
 import * as Mat4Stack from "./mat4_stack.js"
 import * as ShapeGen from "./shapegen.js"
 
@@ -49,10 +49,16 @@ async function main(){
 
     var wireframe_shader = await load_shader("wireframe");
 
-    var tetrahedron = new ConvexPolyhedron(
+    var cylinder = ShapeGen.cylinder(1,0.75,10);
+    var cube = ShapeGen.cylinder(1,2,4);
+    cube.push(new Vec3(1,0.5,0));
+
+    var shape = new ConvexPolyhedron(
         gl,
-        ShapeGen.cylinder(1,2,8)
+        cube
     );
+
+    shape.log_faces();
 
     function frame(now){
         now *= 0.001; // convert to seconds
@@ -74,18 +80,19 @@ async function main(){
         Mat4Stack.rotate_x(30);
         Mat4Stack.translate(0,-2,-3);
         Mat4Stack.rotate_y(now*90);
+        Mat4Stack.rotate_x(now*30);
         Mat4Stack.mode(Mat4Stack.PROJECTION);
         Mat4Stack.load_identity();
         Mat4Stack.perspective(90,canvas.width/canvas.height,0.01,100.0);
         Mat4Stack.upload(gl, wireframe_shader);
-        gl.bindBuffer(gl.ARRAY_BUFFER,tetrahedron.vbo);
+        gl.bindBuffer(gl.ARRAY_BUFFER,shape.tri_vbo);
         var l0 = gl.getAttribLocation(wireframe_shader,"a_position");
         var l1 = gl.getAttribLocation(wireframe_shader,"a_barycentric");
         gl.enableVertexAttribArray(l0);
         gl.enableVertexAttribArray(l1);
         gl.vertexAttribPointer(l0,3,gl.FLOAT,gl.FALSE,6*4,0);
         gl.vertexAttribPointer(l1,3,gl.FLOAT,gl.FALSE,6*4,3*4);
-        gl.drawArrays(gl.TRIANGLES,0,tetrahedron.n_vertices);
+        gl.drawArrays(gl.TRIANGLES,0,shape.tri_vcount);
     
         requestAnimationFrame(frame);
     }

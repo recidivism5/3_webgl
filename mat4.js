@@ -5,11 +5,7 @@ export function create(){
 }
 
 export function clone(a){
-    var m = create();
-    for (var i = 0; i < 16; i++){
-        m[i] = a[i];
-    }
-    return m;
+    return new Float32Array(a);
 }
 
 export function identity(out){

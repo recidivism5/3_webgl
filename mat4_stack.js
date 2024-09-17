@@ -29,7 +29,7 @@ export function mode(id){
 }
 
 export function push(){
-    cur.push(get());
+    cur.push(Mat4.clone(get()));
 }
 
 export function pop(){

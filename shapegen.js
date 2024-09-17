@@ -1,4 +1,4 @@
-import * as Vec3 from "./vec3.js"
+import {Vec3} from "./vec3.js"
 
 export function cylinder(radius, height, subdivisions){
     if (subdivisions < 3){
@@ -11,8 +11,8 @@ export function cylinder(radius, height, subdivisions){
         var r = i*d;
         var c = radius * Math.cos(r);
         var s = radius * Math.sin(r);
-        positions.push(Vec3.from_values(c,height/2,s));
-        positions.push(Vec3.from_values(c,-height/2,s));
+        positions.push(new Vec3(c,height/2,s));
+        positions.push(new Vec3(c,-height/2,s));
     }
     return positions;
 }

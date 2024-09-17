@@ -1,72 +1,145 @@
 import {epsilon} from "./epsilon.js"
 
-export function create(){
-    return new Float32Array([0,0,0]);
-}
-
-export function from_values(x,y,z){
-    return new Float32Array([x,y,z]);
-}
-
-export function clone(v){
-    return new Float32Array(v);
-}
-
-export function from_array(arr){
-    return new Float32Array(arr);
-}
-
-export function from_array_array(arr){
-    var va = [];
-    for (var i = 0; i < arr.length; i++){
-        va.push(from_array(arr[i]));
+export class Vec3 {
+    constructor(x,y,z){
+        this.x = x;
+        this.y = y;
+        this.z = z
     }
-    return va;
-}
 
-export function add(out,a,b){
-    out[0] = a[0] + b[0];
-    out[1] = a[1] + b[1];
-    out[2] = a[2] + b[2];
-}
+    clone(){
+        return new Vec3(this.x,this.y,this.z);
+    }
 
-export function sub(out,a,b){
-    out[0] = a[0] - b[0];
-    out[1] = a[1] - b[1];
-    out[2] = a[2] - b[2];
-}
+    static from_array(a){
+        return new Vec3(a[0],a[1],a[2]);
+    }
 
-export function scale(out,a,s){
-    out[0] = a[0] * s;
-    out[1] = a[1] * s;
-    out[2] = a[2] * s;
-}
+    add(v){
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+        return this;
+    }
 
-export function dot(a,b){
-    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-}
+    from_add(v){
+        return new Vec3(
+            this.x + v.x,
+            this.y + v.y,
+            this.z + v.z
+        );
+    }
 
-export function cross(out,a,b){
-    var ac = clone(a);
-    var bc = clone(b);
-    out[0] = ac[1]*bc[2] - ac[2]*bc[1];
-    out[1] = ac[2]*bc[0] - ac[0]*bc[2];
-    out[2] = ac[0]*bc[1] - ac[1]*bc[0];
-}
+    sub(v){
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+        return this;
+    }
 
-export function normalize(out,a){
-    var invmag = 1.0 / Math.sqrt(dot(a,a));
-    scale(out,a,invmag);
-}
+    from_sub(v){
+        return new Vec3(
+            this.x - v.x,
+            this.y - v.y,
+            this.z - v.z
+        );
+    }
 
-export function negate(out,a){
-    out[0] = -a[0];
-    out[1] = -a[1];
-    out[2] = -a[2];
-}
+    mul(v){
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+        return this;
+    }
 
-export function equal(a,b){
-    return Math.abs(a[0] - b[0]) <= epsilon &&
-           Math.abs(a[1] - b[1]) <= epsilon &&
-           Math.abs(a[2] - b[2]) <= epsilon;
+    from_mul(v){
+        return new Vec3(
+            this.x * v.x,
+            this.y * v.y,
+            this.z * v.z
+        );
+    }
+
+    scale(s){
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
+        return this;
+    }
+
+    from_scale(s){
+        return new Vec3(
+            this.x * s,
+            this.y * s,
+            this.z * s
+        );
+    }
+
+    negate(){
+        this.x *= -1;
+        this.y *= -1;
+        this.z *= -1;
+        return this;
+    }
+
+    from_negate(){
+        return new Vec3(
+            -this.x,
+            -this.y,
+            -this.z
+        );
+    }
+
+    dot(v){
+        return this.x*v.x + this.y*v.y + this.z*v.z;
+    }
+
+    cross(v){
+        var a = this.clone();
+        this.x = a.y*v.z - a.z*v.y;
+        this.y = a.z*v.x - a.x*v.z;
+        this.z = a.x*v.y - a.y*v.x;
+        return this;
+    }
+
+    from_cross(v){
+        return new Vec3(
+            this.y*v.z - this.z*v.y,
+            this.z*v.x - this.x*v.z,
+            this.x*v.y - this.y*v.x
+        );
+    }
+
+    length2(){
+        return this.dot(this);
+    }
+
+    length(){
+        return Math.sqrt(this.length2());
+    }
+
+    normalize(){
+        this.scale(1.0 / this.length());
+        return this;
+    }
+
+    from_normalize(){
+        return this.from_scale(1.0 / this.length());
+    }
+
+    distance(v){
+        return this.from_sub(v).length();
+    }
+
+    equal(v){
+        return Math.abs(this.x-v.x) <= epsilon &&
+               Math.abs(this.y-v.y) <= epsilon &&
+               Math.abs(this.z-v.z) <= epsilon;
+    }
+
+    is_zero(){
+        return Math.abs(this.x) <= epsilon &&
+               Math.abs(this.y) <= epsilon &&
+               Math.abs(this.z) <= epsilon;
+    }
 }
