@@ -1,5 +1,4 @@
 import {Vec3} from "./vec3.js"
-import {epsilon} from "./epsilon.js"
 
 export class Plane {
     constructor(normal, distance){

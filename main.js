@@ -1,11 +1,11 @@
-import {ConvexPolyhedron} from "./convex_polyhedron.js"
 import {Vec3} from "./vec3.js"
 import * as Mat4Stack from "./mat4_stack.js"
 import * as ShapeGen from "./shapegen.js"
+import * as BlockTypes from "./blocktypes.js"
 
 async function main(){
     var canvas = document.querySelector("#canvas");
-    var gl = canvas.getContext("webgl");
+    window.gl = canvas.getContext("webgl");
     if (!gl){
         return;
     }
@@ -47,18 +47,15 @@ async function main(){
         return program;
     }
 
+    function set_attrib(shader, name, size, type, stride, offset){
+        var loc = gl.getAttribLocation(shader,name);
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc,size,type,gl.FALSE,stride,offset);
+    }
+
     var wireframe_shader = await load_shader("wireframe");
 
-    var cylinder = ShapeGen.cylinder(1,0.75,10);
-    var cube = ShapeGen.cylinder(1,2,4);
-    cube.push(new Vec3(1,0.5,0));
-
-    var shape = new ConvexPolyhedron(
-        gl,
-        cube
-    );
-
-    shape.log_faces();
+    BlockTypes.init();
 
     function frame(now){
         now *= 0.001; // convert to seconds
@@ -73,8 +70,12 @@ async function main(){
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
+        
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         gl.useProgram(wireframe_shader);
+
         Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.load_identity();
         Mat4Stack.rotate_x(30);
@@ -85,14 +86,11 @@ async function main(){
         Mat4Stack.load_identity();
         Mat4Stack.perspective(90,canvas.width/canvas.height,0.01,100.0);
         Mat4Stack.upload(gl, wireframe_shader);
-        gl.bindBuffer(gl.ARRAY_BUFFER,shape.tri_vbo);
-        var l0 = gl.getAttribLocation(wireframe_shader,"a_position");
-        var l1 = gl.getAttribLocation(wireframe_shader,"a_barycentric");
-        gl.enableVertexAttribArray(l0);
-        gl.enableVertexAttribArray(l1);
-        gl.vertexAttribPointer(l0,3,gl.FLOAT,gl.FALSE,6*4,0);
-        gl.vertexAttribPointer(l1,3,gl.FLOAT,gl.FALSE,6*4,3*4);
-        gl.drawArrays(gl.TRIANGLES,0,shape.tri_vcount);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER,BlockTypes.blocktypes[1].tri_vbo);
+        set_attrib(wireframe_shader,"a_position",3,gl.FLOAT,6*4,0);
+        set_attrib(wireframe_shader,"a_barycentric",3,gl.FLOAT,6*4,3*4);
+        gl.drawArrays(gl.TRIANGLES,0,BlockTypes.blocktypes[1].tri_vcount);
     
         requestAnimationFrame(frame);
     }

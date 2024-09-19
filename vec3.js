@@ -142,4 +142,34 @@ export class Vec3 {
                Math.abs(this.y) <= epsilon &&
                Math.abs(this.z) <= epsilon;
     }
+
+    round(){
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        this.z = Math.round(this.z);
+    }
+
+    rotate_x(deg){
+        var rad = deg*Math.PI/180.0,
+        y = this.y, z = this.z,
+        s = Math.sin(rad), c = Math.cos(rad);
+        this.y = y*c - z*s;
+        this.z = y*s + z*c;
+    }
+    
+    rotate_y(deg){
+        var rad = deg*Math.PI/180.0,
+        x = this.x, z = this.z,
+        s = Math.sin(rad), c = Math.cos(rad);
+        this.x = z*s + x*c;
+        this.z = z*c - x*s;
+    }
+    
+    rotate_z(deg){
+        var rad = deg*Math.PI/180.0,
+        x = this.x, y = this.y,
+        s = Math.sin(rad), c = Math.cos(rad);
+        this.x = x*c - y*s;
+        this.y = x*s + y*c;
+    }
 }

@@ -1,5 +1,23 @@
 import {Vec3} from "./vec3.js"
 
+export function box(x,y,z){
+    return [
+        new Vec3(-x,-y,-z),
+        new Vec3(-x, y,-z),
+        new Vec3(-x,-y, z),
+        new Vec3(-x, y, z),
+
+        new Vec3( x,-y,-z),
+        new Vec3( x, y,-z),
+        new Vec3( x,-y, z),
+        new Vec3( x, y, z),
+    ];
+}
+
+export function cube(radius){
+    return box(radius,radius,radius);
+}
+
 export function cylinder(radius, height, subdivisions){
     if (subdivisions < 3){
         subdivisions = 3;
