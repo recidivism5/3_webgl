@@ -38,7 +38,7 @@ export function pop(){
     }
 }
 
-export function upload(gl, shader){
+export function upload(shader){
     gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,modelview[modelview.length-1]);
     gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection[projection.length-1]);
 }

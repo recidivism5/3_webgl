@@ -30,10 +30,19 @@ export class Shape {
             this.hullpoints.push(new HullPoint(p));
         }
         this.hull = [];
+        this.border_bitmaps = [];
         this.build_hull();
         this.tri_vbo = null;
         this.tri_vcount = null;
         this.build_tris(gl);
+    }
+
+    get_bitmap_from_indices(indices){
+        var bitmap = 0;
+        for (var i = 0; i < indices.length; i++){
+            var p = this.hullpoints[indices[i]].position;
+            bitmap |= 1<<(p.z*3*3 + p.y*3 + p.x);
+        }
     }
 
     build_tris(gl){
@@ -78,7 +87,7 @@ export class Shape {
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(tris.flat()),gl.STATIC_DRAW);
     }
 
-    add_face(plane){
+    get_coplanar(plane){
         var coplanar = [];
         for (var i = 0; i < this.hullpoints.length; i++){
             var p = this.hullpoints[i].position;
@@ -87,6 +96,10 @@ export class Shape {
                 coplanar.push(i);
             }
         }
+        return coplanar;
+    }
+
+    add_face(plane, coplanar){
         if (coplanar.length < 3) return;
         var indices = [coplanar.pop()];
         while (coplanar.length){
@@ -115,28 +128,47 @@ export class Shape {
         this.hull.push(new Face(plane,indices));
     }
 
+    add_face_from_normal(normal){
+        var furthest_d = -999.0;
+        for (var i = 0; i < this.hullpoints.length; i++){
+            var p = this.hullpoints[i].position;
+            var d = normal.dot(p);
+            if (d > furthest_d){
+                furthest_d = d;
+            }
+        }
+        var plane = new Plane(normal, furthest_d);
+        var coplanar = this.get_coplanar(plane);
+        this.border_bitmaps.push(this.get_bitmap_from_indices(coplanar));
+        this.add_face(plane, coplanar);
+    }
+
     build_hull(){
-        this.add_face(new Plane(new Vec3(-1,0,0),0));
-        this.add_face(new Plane(new Vec3(1,0,0),2));
-        this.add_face(new Plane(new Vec3(0,-1,0),0));
-        this.add_face(new Plane(new Vec3(0,1,0),2));
-        this.add_face(new Plane(new Vec3(0,0,-1),0));
-        this.add_face(new Plane(new Vec3(0,0,1),2));
+        this.add_face_from_normal(new Vec3(-1,0,0));
+        this.add_face_from_normal(new Vec3(1,0,0));
+        this.add_face_from_normal(new Vec3(0,-1,0));
+        this.add_face_from_normal(new Vec3(0,1,0));
+        this.add_face_from_normal(new Vec3(0,0,-1));
+        this.add_face_from_normal(new Vec3(0,0,1));
         var remaining = [];
         var other = null;
         for (var i = 0; i < this.hullpoints.length; i++){
             var p = this.hullpoints[i];
             if (p.facecount < 3){
-                remaining.push(p.position);
+                remaining.push(i);
             } else if (other == null){
                 other = p.position;
             }
         }
         if (!remaining.length) return;
-        var plane = Plane.from_triangle(remaining[0],remaining[1],remaining[2]);
+        var plane = Plane.from_triangle(
+            this.hullpoints[remaining[0]].position,
+            this.hullpoints[remaining[1]].position,
+            this.hullpoints[remaining[2]].position
+        );
         if (plane.distance_to(other) > epsilon)
             plane.flip();
-        this.add_face(plane);
+        this.add_face(plane,remaining);
     }
 
     log_bitmap(){
@@ -149,28 +181,31 @@ export class Shape {
 }
 
 function gen(positions){
-    for (var x = 0; x < 3; x++){
+    for (var x = 0; x < 4; x++){
         for (var y = 0; y < 4; y++){
-            var points = [];
-            for (var i = 0; i < positions.length; i++){
-                var v = positions[i].clone();
-                v.sub(new Vec3(1,1,1));
-                v.rotate_x(x*90.0);
-                v.rotate_y(y*90.0);
-                v.add(new Vec3(1,1,1));
-                v.round();
-                points.push(v);
-            }
-            var bitmap = get_bitmap(points);
-            var rotation_exists = false;
-            for (var i = 0; i < blocktypes.length; i++){
-                if (blocktypes[i].bitmap == bitmap){
-                    rotation_exists = true;
-                    break;
+            for (var z = 0; z < 4; z++){
+                var points = [];
+                for (var i = 0; i < positions.length; i++){
+                    var v = positions[i].clone();
+                    v.sub(new Vec3(1,1,1));
+                    v.rotate_x(x*90.0);
+                    v.rotate_y(y*90.0);
+                    v.rotate_z(z*90.0);
+                    v.add(new Vec3(1,1,1));
+                    v.round();
+                    points.push(v);
                 }
+                var bitmap = get_bitmap(points);
+                var rotation_exists = false;
+                for (var i = 0; i < blocktypes.length; i++){
+                    if (blocktypes[i].bitmap == bitmap){
+                        rotation_exists = true;
+                        break;
+                    }
+                }
+                if (rotation_exists) continue;
+                blocktypes.push(new Shape(points, bitmap));
             }
-            if (rotation_exists) continue;
-            blocktypes.push(new Shape(points, bitmap));
         }
     }
 }
