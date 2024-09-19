@@ -113,8 +113,8 @@ async function main(){
         Mat4Stack.load_identity();
         Mat4Stack.rotate_x(35);
         Mat4Stack.translate(0,-4,-6);
-        Mat4Stack.rotate_y(now*90);
-        Mat4Stack.rotate_x(now*30);
+        //Mat4Stack.rotate_y(now*90);
+        //Mat4Stack.rotate_x(now*30);
         Mat4Stack.translate(-1,-1,-1);
         Mat4Stack.upload(wireframe_shader);
 

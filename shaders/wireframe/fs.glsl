@@ -4,8 +4,8 @@ precision mediump float;
 varying vec3 v_barycentric;
 varying float v_type;
 
-const vec4 wire_color = vec4(1.0,0.0,1.0,1.0);
-const vec4 color = vec4(0.0,0.5,0.0,0.0);
+const vec4 wire_color = vec4(1.0,1.0,1.0,1.0);
+const vec4 color = vec4(0.25,0.25,0.25,1.0);
 const float wire_width = 2.0;
 const float wire_smoothness = 0.0;
 

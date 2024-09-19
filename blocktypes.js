@@ -21,6 +21,13 @@ function get_bitmap(positions){
     return bitmap;
 }
 
+class ExpandedPoint {
+    constructor(parent, offset){
+        this.parent = parent;
+        this.offset = offset;
+    }
+}
+
 export class Shape {
     constructor(positions, bitmap){
         this.hullpoints = [];
@@ -31,10 +38,13 @@ export class Shape {
         }
         this.hull = [];
         this.border_bitmaps = [];
+        this.expanded_points = [];
+        this.expanded_hull = [];
         this.build_hull();
+        this.build_expanded_hull();
         this.tri_vbo = null;
         this.tri_vcount = null;
-        this.build_tris(gl);
+        this.build_tris();
     }
 
     get_bitmap_from_indices(indices){
@@ -45,7 +55,7 @@ export class Shape {
         }
     }
 
-    build_tris(gl){
+    build_tris(){
         var tris = [];
         for (var i = 0; i < this.hull.length; i++){
             var face = this.hull[i];
@@ -168,7 +178,11 @@ export class Shape {
         );
         if (plane.distance_to(other) > epsilon)
             plane.flip();
-        this.add_face(plane,remaining);
+        this.add_face(plane,this.get_coplanar(plane));
+    }
+
+    build_expanded_hull(){
+        
     }
 
     log_bitmap(){
@@ -181,9 +195,9 @@ export class Shape {
 }
 
 function gen(positions){
-    for (var x = 0; x < 4; x++){
-        for (var y = 0; y < 4; y++){
-            for (var z = 0; z < 4; z++){
+    for (var z = 0; z < 4; z++){
+        for (var x = 0; x < 4; x++){
+            for (var y = 0; y < 4; y++){
                 var points = [];
                 for (var i = 0; i < positions.length; i++){
                     var v = positions[i].clone();
