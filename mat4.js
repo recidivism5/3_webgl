@@ -26,18 +26,18 @@ export function mul(out,a,b){
     }
 }
 
-export function scale(out,x,y,z){
+export function scale(out,v){
     identity(out);
-    out[0] = x;
-    out[5] = y;
-    out[10] = z;
+    out[0] = v.x;
+    out[5] = v.y;
+    out[10] = v.z;
 }
 
-export function translate(out,x,y,z){
+export function translate(out,v){
     identity(out);
-    out[12] = x;
-    out[13] = y;
-    out[14] = z;
+    out[12] = v.x;
+    out[13] = v.y;
+    out[14] = v.z;
 }
 
 export function rotate_x(out,degrees){

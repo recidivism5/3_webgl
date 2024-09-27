@@ -1,10 +1,10 @@
-import {epsilon} from "./epsilon.js"
+import {EPSILON} from "./epsilon.js"
 
 export class Vec3 {
     constructor(x,y,z){
         this.x = x;
         this.y = y;
-        this.z = z
+        this.z = z;
     }
 
     clone(){
@@ -15,19 +15,36 @@ export class Vec3 {
         return new Vec3(a[0],a[1],a[2]);
     }
 
+    copy(v){
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+    }
+
+    get(index){
+        switch (index){
+            case 0: return this.x;
+            case 1: return this.y;
+            case 2: return this.z;
+            default: throw new Error("index is out of range: " + index);
+        }
+    }
+
+    set(index, value){
+        switch (index){
+			case 0: this.x = value; break;
+			case 1: this.y = value; break;
+			case 2: this.z = value; break;
+			default: throw new Error("index is out of range: " + index);
+		}
+		return this;
+    }
+
     add(v){
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
         return this;
-    }
-
-    from_add(v){
-        return new Vec3(
-            this.x + v.x,
-            this.y + v.y,
-            this.z + v.z
-        );
     }
 
     sub(v){
@@ -37,27 +54,11 @@ export class Vec3 {
         return this;
     }
 
-    from_sub(v){
-        return new Vec3(
-            this.x - v.x,
-            this.y - v.y,
-            this.z - v.z
-        );
-    }
-
     mul(v){
         this.x *= v.x;
         this.y *= v.y;
         this.z *= v.z;
         return this;
-    }
-
-    from_mul(v){
-        return new Vec3(
-            this.x * v.x,
-            this.y * v.y,
-            this.z * v.z
-        );
     }
 
     scale(s){
@@ -67,27 +68,11 @@ export class Vec3 {
         return this;
     }
 
-    from_scale(s){
-        return new Vec3(
-            this.x * s,
-            this.y * s,
-            this.z * s
-        );
-    }
-
     negate(){
         this.x *= -1;
         this.y *= -1;
         this.z *= -1;
         return this;
-    }
-
-    from_negate(){
-        return new Vec3(
-            -this.x,
-            -this.y,
-            -this.z
-        );
     }
 
     dot(v){
@@ -100,14 +85,6 @@ export class Vec3 {
         this.y = a.z*v.x - a.x*v.z;
         this.z = a.x*v.y - a.y*v.x;
         return this;
-    }
-
-    from_cross(v){
-        return new Vec3(
-            this.y*v.z - this.z*v.y,
-            this.z*v.x - this.x*v.z,
-            this.x*v.y - this.y*v.x
-        );
     }
 
     length2(){
@@ -123,30 +100,38 @@ export class Vec3 {
         return this;
     }
 
-    from_normalize(){
-        return this.from_scale(1.0 / this.length());
-    }
-
     distance(v){
-        return this.from_sub(v).length();
+        return this.clone().sub(v).length();
     }
 
     equal(v){
-        return Math.abs(this.x-v.x) <= epsilon &&
-               Math.abs(this.y-v.y) <= epsilon &&
-               Math.abs(this.z-v.z) <= epsilon;
+        return Math.abs(this.x-v.x) <= EPSILON &&
+               Math.abs(this.y-v.y) <= EPSILON &&
+               Math.abs(this.z-v.z) <= EPSILON;
     }
 
     is_zero(){
-        return Math.abs(this.x) <= epsilon &&
-               Math.abs(this.y) <= epsilon &&
-               Math.abs(this.z) <= epsilon;
+        return Math.abs(this.x) <= EPSILON &&
+               Math.abs(this.y) <= EPSILON &&
+               Math.abs(this.z) <= EPSILON;
     }
 
     round(){
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);
+    }
+
+    floor(){
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        this.z = Math.floor(this.z);
+    }
+
+    lerp(v,t){
+        this.x += (v.x - this.x) * t;
+        this.y += (v.y - this.y) * t;
+        this.z += (v.z - this.z) * t;
     }
 
     rotate_x(deg){
