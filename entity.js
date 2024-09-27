@@ -1,7 +1,7 @@
 import {Vec3} from "./vec3.js"
-import * as world from "./world.js"
+import {World} from "./world.js"
 import {AABB} from "./aabb.js"
-import * as blocktypes from "./blocktype.js"
+import {BlockType} from "./blocktype.js"
 
 export class Entity {
     constructor(position, width, height, physics_enabled){
@@ -16,7 +16,9 @@ export class Entity {
     }
 
     move(v){
-        this.velocity.lerp(v,0.2);
+        this.velocity.x += (v.x - this.velocity.x) * 0.2;
+        if (!this.physics_enabled) this.velocity.y += (v.y - this.velocity.y) * 0.2;
+        this.velocity.z += (v.z - this.velocity.z) * 0.2;
     }
 
     tick(){
@@ -27,16 +29,31 @@ export class Entity {
             this.velocity.y -= 0.04;
 
             var d = this.velocity.clone();
-            
-            var aabb = new AABB(
-                this.previous_position.clone().sub(this.half_extents),
-                this.previous_position.clone().add(this.half_extents)
-            );
 
-            var expanded_aabb = aabb.clone();
-            expanded_aabb.expand(d);
-            expanded_aabb.min.floor();
-            expanded_aabb.max.floor();
+            while (!d.is_zero()){
+            
+                var aabb = new AABB(
+                    this.previous_position.clone().sub(this.half_extents),
+                    this.previous_position.clone().add(this.half_extents)
+                );
+
+                aabb.expand(d);
+                aabb.min.floor();
+                aabb.max.floor();
+
+                for (var y = aabb.min.y; y <= aabb.max.y; y++){
+                    for (var z = aabb.min.z; z <= aabb.max.z; z++){
+                        for (var x = aabb.min.x; x <= aabb.max.x; x++){
+                            var block_id = World.get_block_id(new Vec3(x,y,z));
+                            if (block_id == 0) continue;
+                            var type = BlockType.get(block_id);
+                            type.collide(this, d);
+                        }
+                    }
+                }
+            }
+
+            this.current_position.add(this.velocity); //remove
         } else {
             this.current_position.add(this.velocity);
         }

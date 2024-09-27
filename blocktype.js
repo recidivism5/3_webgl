@@ -167,16 +167,16 @@ export class BlockType {
         });
     }
 
-    draw_clipped_face(offset, index, neighbor_id){
+    draw_clipped_face(x, y, z, index, neighbor_id, color){
         var face = this.clipped_faces[index][neighbor_id];
         switch (face.length){
             case 3:
                 Immediate.set_type(3);
                 face.forEach((position)=>{
                     Immediate.vertex(
-                        offset.x + position.x, offset.y + position.y, offset.z + position.z,
-                        255,0,0,255,
-                        255,255,255,255
+                        x + position.x, y + position.y, z + position.z,
+                        color.r,color.g,color.b,color.a,
+                        0,0,0,255
                     );
                 });
                 break;
@@ -186,9 +186,9 @@ export class BlockType {
                     for (var j = 0; j < 3; j++){
                         var p = face[(i+j) % 4];
                         Immediate.vertex(
-                            offset.x + p.x, offset.y + p.y, offset.z + p.z,
-                            255,0,0,255,
-                            255,255,255,255
+                            x + p.x, y + p.y, z + p.z,
+                            color.r,color.g,color.b,color.a,
+                            0,0,0,255
                         );
                     }
                 }
@@ -196,7 +196,7 @@ export class BlockType {
         }
     }
 
-    draw_non_border_faces(offset){
+    draw_non_border_faces(x, y, z, color){
         this.non_border_face_ids.forEach((face_id)=>{
             var face = this.faces[face_id];
             switch (face.length){
@@ -205,9 +205,9 @@ export class BlockType {
                     face.forEach((pos_id)=>{
                         var position = this.positions[pos_id];
                         Immediate.vertex(
-                            offset.x + position.x, offset.y + position.y, offset.z + position.z,
-                            255,0,0,255,
-                            255,255,255,255
+                            x + position.x, y + position.y, z + position.z,
+                            color.r,color.g,color.b,color.a,
+                            0,0,0,255
                         );
                     });
                     break;
@@ -217,9 +217,9 @@ export class BlockType {
                         for (var j = 0; j < 3; j++){
                             var position = this.positions[face[(i+j) % 4]];
                             Immediate.vertex(
-                                offset.x + position.x, offset.y + position.y, offset.z + position.z,
-                                255,0,0,255,
-                                255,255,255,255
+                                x + position.x, y + position.y, z + position.z,
+                                color.r,color.g,color.b,color.a,
+                                0,0,0,255
                             );
                         }
                     }

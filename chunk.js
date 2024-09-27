@@ -6,6 +6,25 @@ import {Vec3} from "./vec3.js"
 import {Color} from "./color.js"
 import * as random from "./random.js"
 
+var cga_colors = [
+	new Color(0x00,0x00,0x00,0xFF),
+	new Color(0x00,0x00,0xAA,0xFF),
+	new Color(0x00,0xAA,0x00,0xFF),
+	new Color(0x00,0xAA,0xAA,0xFF),
+	new Color(0xAA,0x00,0x00,0xFF),
+	new Color(0xAA,0x00,0xAA,0xFF),
+	new Color(0xAA,0x55,0x00,0xFF),
+	new Color(0xAA,0xAA,0xAA,0xFF),
+	new Color(0x55,0x55,0x55,0xFF),
+	new Color(0x55,0x55,0xFF,0xFF),
+	new Color(0x55,0xFF,0x55,0xFF),
+	new Color(0x55,0xFF,0xFF,0xFF),
+	new Color(0xFF,0x55,0x55,0xFF),
+	new Color(0xFF,0x55,0xFF,0xFF),
+	new Color(0xFF,0xFF,0x55,0xFF),
+	new Color(0xFF,0xFF,0xFF,0xFF),
+];
+
 export class ChunkPos {
     constructor(x,z){
         this.x = x;
@@ -47,24 +66,25 @@ export class Chunk {
 
     constructor(position){
         this.position = position;
-        this.blocks = new Uint8Array(Chunk.width*Chunk.width*Chunk.height);
-        for (var z = 0; z < Chunk.width; z++){
-            for (var x = 0; x < Chunk.width; x++){
-                this.set_block_id(new Vec3(x,0,z), 1);
+        this.blocks = new Uint8Array(Chunk.width*Chunk.width*Chunk.height*2);
+        for (var z = 1; z < Chunk.width-1; z++){
+            for (var x = 1; x < Chunk.width-1; x++){
+                this.set_block_id(x, 0, z, 1);
+                this.set_block_color_id(x, 0, z, random.rand_int(cga_colors.length));
                 if (x%2){
-                    this.set_block_id(new Vec3(x,1,z), random.rand_int(BlockType.types.length));
+                    this.set_block_id(x, 1, z, random.rand_int(BlockType.types.length));
+                    this.set_block_color_id(x, 1, z, random.rand_int(cga_colors.length));
                 }
             }
         }
     }
 
-    draw_block(offset, type){
+    draw_block(x, y, z, type, color){
         BlockType.iterate_borders((index, plane)=>{
-            var neighbor_offset = offset.clone().add(plane.normal);
-            var id = this.get_block_id(neighbor_offset);
-            type.draw_clipped_face(offset, index, id);
+            var id = this.get_block_id(x + plane.normal.x, y + plane.normal.y, z + plane.normal.z);
+            type.draw_clipped_face(x, y, z, index, id, color);
         });
-        type.draw_non_border_faces(offset);
+        type.draw_non_border_faces(x, y, z, color);
     }
 
     draw(){
@@ -73,13 +93,13 @@ export class Chunk {
         Mat4Stack.translate(this.position.get_block_origin());
         Mat4Stack.upload();
         Immediate.begin();
-        var offset = new Vec3(0,0,0);
-        for (offset.y = 0; offset.y < Chunk.height; offset.y++){
-            for (offset.z = 0; offset.z < Chunk.width; offset.z++){
-                for (offset.x = 0; offset.x < Chunk.width; offset.x++){
-                    var id = this.get_block_id(offset);
+        for (var y = 0; y < Chunk.height; y++){
+            for (var z = 0; z < Chunk.width; z++){
+                for (var x = 0; x < Chunk.width; x++){
+                    var id = this.get_block_id(x, y, z);
                     if (!id) continue;
-                    this.draw_block(offset, BlockType.get(id));
+                    var color = cga_colors[this.get_block_color_id(x,y,z)];
+                    this.draw_block(x, y, z, BlockType.get(id), color);
                 }
             }
         }
@@ -87,29 +107,52 @@ export class Chunk {
         Mat4Stack.pop();
     }
 
-    get_block_id(offset){
-        if (offset.y < 0 || offset.y >= Chunk.height) return 0;
+    get_block_id(x, y, z){
+        if (y < 0 || y >= Chunk.height) return 0;
         if (
-            offset.x < 0 || offset.x >= Chunk.width ||
-            offset.z < 0 || offset.z >= Chunk.width
+            x < 0 || x >= Chunk.width ||
+            z < 0 || z >= Chunk.width
         ){
-            if (offset.x >= Chunk.width && offset.z > 0){
-                Math.floor(0);
-            }
-            return World.get_block_id(this.position.get_block_origin().add(offset));
+            //return World.get_block_id(this.position.get_block_origin().add(offset));
         }
-        return this.blocks[offset.y*Chunk.width*Chunk.width + offset.z*Chunk.width + offset.x];
+        return this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 0];
     }
 
-    set_block_id(offset, val){
+    set_block_id(x, y, z, val){
         if (
-            offset.x < 0 || offset.x >= Chunk.width ||
-            offset.y < 0 || offset.y >= Chunk.height ||
-            offset.z < 0 || offset.z >= Chunk.width
+            x < 0 || x >= Chunk.width ||
+            y < 0 || y >= Chunk.height ||
+            z < 0 || z >= Chunk.width
         ){
             return false;
         }
-        this.blocks[offset.y*Chunk.width*Chunk.width + offset.z*Chunk.width + offset.x] = val;
+        this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 0] = val;
+        return true;
+    }
+
+    get_block_color_id(x, y, z){
+        if (y < 0 || y >= Chunk.height) return 0;
+        if (
+            x < 0 || x >= Chunk.width ||
+            z < 0 || z >= Chunk.width
+        ){
+            if (x >= Chunk.width && z > 0){
+                Math.floor(0);
+            }
+            //return World.get_block_id(this.position.get_block_origin().add(offset)); fuck you
+        }
+        return this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 1];
+    }
+
+    set_block_color_id(x, y, z, val){
+        if (
+            x < 0 || x >= Chunk.width ||
+            y < 0 || y >= Chunk.height ||
+            z < 0 || z >= Chunk.width
+        ){
+            return false;
+        }
+        this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 1] = val;
         return true;
     }
 }
