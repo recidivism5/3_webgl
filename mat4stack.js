@@ -49,13 +49,13 @@ export class Mat4Stack {
         Mat4.identity(get());
     }
 
-    static scale(v){
-        Mat4.scale(temp,v);
+    static scale(x, y, z){
+        Mat4.scale(temp, x, y, z);
         apply();
     }
 
-    static translate(v){
-        Mat4.translate(temp,v);
+    static translate(x, y, z){
+        Mat4.translate(temp, x, y, z);
         apply();
     }
 

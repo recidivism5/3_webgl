@@ -2,6 +2,7 @@ import {Vec3} from "./vec3.js"
 import {Plane} from "./plane.js"
 import {EPSILON} from "./epsilon.js"
 import {Immediate} from "./immediate.js"
+import * as random from "./random.js"
 
 function get_bitmap(positions){
     var bitmap = 0;
@@ -40,6 +41,10 @@ export class BlockType {
 
     static border_brightnesses = [];
 
+    static get_random_id(){
+        return random.rand_int(BlockType.types.length);
+    }
+
     constructor(id, positions, bitmap, faces, expanded_positions, expanded_faces){
         this.id = id;
         this.positions = positions;
@@ -69,7 +74,7 @@ export class BlockType {
         });
 
         this.border_face_ids = [];
-        BlockType.iterate_borders((index, plane)=>{
+        BlockType.iterate_borders((component, direction, index, plane)=>{
             var found = false;
             for (var i = 0; i < this.planes.length; i++){
                 if (this.planes[i].equal(plane)){
@@ -100,7 +105,7 @@ export class BlockType {
                 var normal = new Vec3(0,0,0);
                 normal.set(component,direction);
                 var plane = new Plane(normal,direction == 1 ? 1 : 0);
-                func(index, plane);
+                func(component, direction, index, plane);
                 index++;
             }
         }
@@ -179,7 +184,7 @@ export class BlockType {
 
     build_clipped_faces(){
         const inv = [1,0,3,2,5,4];
-        BlockType.iterate_borders((index, plane)=>{
+        BlockType.iterate_borders((component, direction, index, plane)=>{
             var face = this.get_border_face(index);
             BlockType.types.forEach((type)=>{
                 var neighbor_face = type.get_border_face(inv[index]);
@@ -324,7 +329,7 @@ export class BlockType {
 
     static init(){
 
-        BlockType.iterate_borders((index, plane)=>{
+        BlockType.iterate_borders((component, direction, index, plane)=>{
             BlockType.border_brightnesses.push(BlockType.get_brightness(plane.normal))
         });
 

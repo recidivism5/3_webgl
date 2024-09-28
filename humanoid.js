@@ -37,6 +37,10 @@ export class Humanoid {
         Mat4Stack.load_identity();
         Mat4Stack.rotate_x(-this.head_rotation_x);
         Mat4Stack.rotate_y(-this.head_rotation_y);
-        Mat4Stack.translate(this.head_position.clone().negate());
+        Mat4Stack.translate(
+            -this.head_position.x,
+            -this.head_position.y,
+            -this.head_position.z,
+        );
     }
 }

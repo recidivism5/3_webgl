@@ -1,4 +1,4 @@
-import {Chunk, ChunkPos} from "./chunk.js"
+import {Chunk} from "./chunk.js"
 import {Vec3} from "./vec3.js"
 
 export class World {
@@ -7,8 +7,8 @@ export class World {
     static init(){
         for (var z = 0; z <= 2; z++){
             for (var x = 0; x <= 2; x++){
-                var pos = new ChunkPos(x,z);
-                World.chunks.set(pos.to_string(), new Chunk(pos));
+                var chunk = new Chunk(x, z);
+                World.chunks.set(chunk.get_key(), chunk);
             }
         }
     }
@@ -19,22 +19,44 @@ export class World {
         });
     }
 
-    static block_pos_to_chunk_offset_component(c){
-        return (Chunk.width + (c % Chunk.width)) % Chunk.width;
+    static to_chunk_local(component){
+        return (Chunk.width + (component % Chunk.width)) % Chunk.width;
     }
 
-    static block_pos_to_chunk_offset(pos){
-        return new Vec3(
-            World.block_pos_to_chunk_offset_component(pos.x),
-            pos.y,
-            World.block_pos_to_chunk_offset_component(pos.z)
+    static to_chunk_global(component){
+        return (component < 0 ? -1 : 0) + Math.trunc(component / Chunk.width);
+    }
+
+    static get_chunk(x, z){
+        var key = Chunk.get_key(x, z);
+        return World.chunks.get(key);
+    }
+
+    static get_chunk_from_block_coords(x, z){
+        return World.get_chunk(
+            World.to_chunk_global(x),
+            World.to_chunk_global(z)
         );
     }
 
-    static get_block_id(pos){
-        var chunkpos = ChunkPos.from_block_pos(pos);
-        var chunk = World.chunks.get(chunkpos.to_string());
-        if (chunk == undefined) return 0;
-        return chunk.get_block_id(World.block_pos_to_chunk_offset(pos));
+    static get_block_id(x, y, z){
+        var chunk = World.get_chunk_from_block_coords(x, z);
+        if (chunk == undefined) return -1;
+        return chunk.get_block_id(
+            World.to_chunk_local(x),
+            y,
+            World.to_chunk_local(x)
+        );
+    }
+
+    static set_block_id(x, y, z, val){
+        var chunk = World.get_chunk_from_block_coords(x, z);
+        if (chunk == undefined) return;
+        return chunk.set_block_id(
+            World.to_chunk_local(x),
+            y,
+            World.to_chunk_local(x),
+            val
+        );
     }
 }
