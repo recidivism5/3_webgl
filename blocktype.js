@@ -23,6 +23,21 @@ export class BlockType {
     static types = [];
     static bitmap_to_type = new Map();
 
+    static ambient = 0.25;
+
+    static light_vec0 = new Vec3(2,3,1).normalize();
+    static light_vec1 = new Vec3(-2,3,-1).normalize();
+
+    static get_brightness(normal){
+        return Math.min(1,Math.max(
+            0,
+            normal.dot(BlockType.light_vec0),
+            normal.dot(BlockType.light_vec1)
+        ) + BlockType.ambient);
+    }
+
+    static border_brightnesses = [];
+
     constructor(id, positions, bitmap, faces, expanded_positions, expanded_faces){
         this.id = id;
         this.positions = positions;
@@ -37,12 +52,18 @@ export class BlockType {
         });
 
         this.planes = [];
+        this.brightnesses = [];
         this.faces.forEach((face)=>{
-            this.planes.push(Plane.from_triangle(
+            var plane = Plane.from_triangle(
                 this.positions[face[0]],
                 this.positions[face[1]],
                 this.positions[face[2]],
-            ));
+            );
+            this.planes.push(plane);
+            
+            this.brightnesses.push(
+                BlockType.get_brightness(plane.normal)
+            );
         });
 
         this.border_face_ids = [];
@@ -169,13 +190,17 @@ export class BlockType {
 
     draw_clipped_face(x, y, z, index, neighbor_id, color){
         var face = this.clipped_faces[index][neighbor_id];
+        var brightness = BlockType.border_brightnesses[index];
         switch (face.length){
             case 3:
                 Immediate.set_type(3);
                 face.forEach((position)=>{
                     Immediate.vertex(
                         x + position.x, y + position.y, z + position.z,
-                        color.r,color.g,color.b,color.a,
+                        brightness * color.r,
+                        brightness * color.g,
+                        brightness * color.b,
+                        color.a,
                         0,0,0,255
                     );
                 });
@@ -187,7 +212,10 @@ export class BlockType {
                         var p = face[(i+j) % 4];
                         Immediate.vertex(
                             x + p.x, y + p.y, z + p.z,
-                            color.r,color.g,color.b,color.a,
+                            brightness * color.r,
+                            brightness * color.g,
+                            brightness * color.b,
+                            color.a,
                             0,0,0,255
                         );
                     }
@@ -199,6 +227,7 @@ export class BlockType {
     draw_non_border_faces(x, y, z, color){
         this.non_border_face_ids.forEach((face_id)=>{
             var face = this.faces[face_id];
+            var brightness = this.brightnesses[face_id];
             switch (face.length){
                 case 3:
                     Immediate.set_type(3);
@@ -206,7 +235,10 @@ export class BlockType {
                         var position = this.positions[pos_id];
                         Immediate.vertex(
                             x + position.x, y + position.y, z + position.z,
-                            color.r,color.g,color.b,color.a,
+                            brightness * color.r,
+                            brightness * color.g,
+                            brightness * color.b,
+                            color.a,
                             0,0,0,255
                         );
                     });
@@ -218,7 +250,10 @@ export class BlockType {
                             var position = this.positions[face[(i+j) % 4]];
                             Immediate.vertex(
                                 x + position.x, y + position.y, z + position.z,
-                                color.r,color.g,color.b,color.a,
+                                brightness * color.r,
+                                brightness * color.g,
+                                brightness * color.b,
+                                color.a,
                                 0,0,0,255
                             );
                         }
@@ -286,6 +321,10 @@ export class BlockType {
     }
 
     static init(){
+
+        BlockType.iterate_borders((index, plane)=>{
+            BlockType.border_brightnesses.push(BlockType.get_brightness(plane.normal))
+        });
 
         BlockType.push_type([],0,[],[],[]); // air
 
