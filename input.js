@@ -1,4 +1,5 @@
 import {Player} from "./player.js"
+import {BlockType} from "./blocktype.js"
 
 export class Input {
     static mouse_sensitivity = 0.1;
@@ -22,6 +23,7 @@ export class Input {
             case "KeyS": Input.backward = true; break;
             case "KeyW": Input.forward = true; break;
             case "KeyF": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
+            case "KeyT": BlockType.enable_outlines = !BlockType.enable_outlines; break;
         }
     }
     

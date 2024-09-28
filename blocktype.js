@@ -23,6 +23,8 @@ export class BlockType {
     static types = [];
     static bitmap_to_type = new Map();
 
+    static enable_outlines = true;
+
     static ambient = 0.25;
 
     static light_vec0 = new Vec3(2,3,1).normalize();
@@ -193,7 +195,7 @@ export class BlockType {
         var brightness = BlockType.border_brightnesses[index];
         switch (face.length){
             case 3:
-                Immediate.set_type(3);
+                Immediate.set_type(BlockType.enable_outlines ? 3 : 0);
                 face.forEach((position)=>{
                     Immediate.vertex(
                         x + position.x, y + position.y, z + position.z,
@@ -206,7 +208,7 @@ export class BlockType {
                 });
                 break;
             case 4:
-                Immediate.set_type(2);
+                Immediate.set_type(BlockType.enable_outlines ? 2 : 0);
                 for (var i = 0; i <= 2; i += 2){
                     for (var j = 0; j < 3; j++){
                         var p = face[(i+j) % 4];
@@ -230,7 +232,7 @@ export class BlockType {
             var brightness = this.brightnesses[face_id];
             switch (face.length){
                 case 3:
-                    Immediate.set_type(3);
+                    Immediate.set_type(BlockType.enable_outlines ? 3 : 0);
                     face.forEach((pos_id)=>{
                         var position = this.positions[pos_id];
                         Immediate.vertex(
@@ -244,7 +246,7 @@ export class BlockType {
                     });
                     break;
                 case 4:
-                    Immediate.set_type(2);
+                    Immediate.set_type(BlockType.enable_outlines ? 2 : 0);
                     for (var i = 0; i <= 2; i += 2){
                         for (var j = 0; j < 3; j++){
                             var position = this.positions[face[(i+j) % 4]];
