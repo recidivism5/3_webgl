@@ -1,5 +1,6 @@
 import {Entity} from "./entity.js"
 import {Mat4Stack} from "./mat4stack.js"
+import {Vec3} from "./vec3.js"
 
 export class Humanoid {
     constructor (position){
@@ -42,5 +43,12 @@ export class Humanoid {
             -this.head_position.y,
             -this.head_position.z,
         );
+    }
+
+    get_head_direction(){
+        var direction = new Vec3(0,0,-1);
+        direction.rotate_x(this.head_rotation_x);
+        direction.rotate_y(this.head_rotation_y);
+        return direction;
     }
 }

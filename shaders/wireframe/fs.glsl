@@ -6,8 +6,8 @@ varying float v_type;
 varying vec4 v_color;
 varying vec4 v_wirecolor;
 
-const float wire_width = 1.0;
-const float wire_smoothness = 0.0;
+const float wire_width = 2.0;
+const float wire_smoothness = 0.01;
 
 /*
 uniform vec4 albedo : source_color = vec4(1.0);

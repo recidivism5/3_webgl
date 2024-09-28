@@ -78,4 +78,10 @@ export class Mat4Stack {
         Mat4.perspective_rh_no(temp,fovy_degrees,aspect,near,far);
         apply();
     }
+
+    static ortho(left, right, bottom, top, near, far){
+        Mat4.ortho_rh_no(temp,left,right,bottom,top,near,far);
+        apply();
+    }
+    
 }

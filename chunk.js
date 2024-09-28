@@ -4,6 +4,7 @@ import {Immediate} from "./immediate.js"
 import {Mat4Stack} from "./mat4stack.js"
 import {Palette} from "./palette.js"
 import {Vec3} from "./vec3.js"
+import {Player} from "./player.js"
 
 export class Chunk {
 
@@ -48,11 +49,16 @@ export class Chunk {
     }
 
     draw_block(x, y, z, type, color){
+        var enable_outline = Player.is_targeting_block(
+            this.x * Chunk.width + x,
+            y,
+            this.z * Chunk.width + z
+        );
         BlockType.iterate_borders((component, direction, index, plane)=>{
             var neighbor_pos = new Vec3(x, y, z);
-            neighbor_pos.set(
+            neighbor_pos.set_component(
                 component,
-                neighbor_pos.get(component) + direction
+                neighbor_pos.get_component(component) + direction
             );
             var neighbor_id = this.get_block_id(
                 neighbor_pos.x,
@@ -60,9 +66,9 @@ export class Chunk {
                 neighbor_pos.z
             );
             if (neighbor_id == -1){
-                neighbor_pos.set(
+                neighbor_pos.set_component(
                     component,
-                    World.to_chunk_local(neighbor_pos.get(component))
+                    World.to_chunk_local(neighbor_pos.get_component(component))
                 );
                 var neighbor_chunk = this.neighbors[index];
                 if (neighbor_chunk == undefined) return;
@@ -72,9 +78,9 @@ export class Chunk {
                     neighbor_pos.z
                 );
             }
-            type.draw_clipped_face(x, y, z, index, neighbor_id, color);
+            type.draw_clipped_face(x, y, z, index, neighbor_id, color, enable_outline);
         });
-        type.draw_non_border_faces(x, y, z, color);
+        type.draw_non_border_faces(x, y, z, color, enable_outline);
     }
 
     draw(){

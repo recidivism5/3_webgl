@@ -45,7 +45,7 @@ export class World {
         return chunk.get_block_id(
             World.to_chunk_local(x),
             y,
-            World.to_chunk_local(x)
+            World.to_chunk_local(z)
         );
     }
 
@@ -55,7 +55,7 @@ export class World {
         return chunk.set_block_id(
             World.to_chunk_local(x),
             y,
-            World.to_chunk_local(x),
+            World.to_chunk_local(z),
             val
         );
     }

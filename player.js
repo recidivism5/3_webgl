@@ -1,10 +1,13 @@
 import {Humanoid} from "./humanoid.js"
 import {Vec3} from "./vec3.js"
 import {Input} from "./input.js"
+import {Raycast} from "./raycast.js"
 
 export class Player {
 
     static humanoid = new Humanoid(new Vec3(16,16,16));
+
+    static raycast = null;
 
     static tick(){
         var move = new Vec3(0,0,0);
@@ -32,5 +35,15 @@ export class Player {
 
     static use_camera(){
         this.humanoid.use_camera();
+    }
+
+    static update_raycast(){
+        var direction = this.humanoid.get_head_direction().scale(5);
+        Player.raycast = Raycast.cubes(this.humanoid.head_position, direction);
+    }
+
+    static is_targeting_block(x, y, z){
+        if (Player.raycast == null) return false;
+        return Player.raycast.position.equal(new Vec3(x,y,z));
     }
 }

@@ -19,9 +19,10 @@ export class Vec3 {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
+        return this;
     }
 
-    get(index){
+    get_component(index){
         switch (index){
             case 0: return this.x;
             case 1: return this.y;
@@ -30,11 +31,31 @@ export class Vec3 {
         }
     }
 
-    set(index, value){
+    set_component(index, value){
         switch (index){
 			case 0: this.x = value; break;
 			case 1: this.y = value; break;
 			case 2: this.z = value; break;
+			default: throw new Error("index is out of range: " + index);
+		}
+		return this;
+    }
+
+    add_component(index, value){
+        switch (index){
+			case 0: this.x += value; break;
+			case 1: this.y += value; break;
+			case 2: this.z += value; break;
+			default: throw new Error("index is out of range: " + index);
+		}
+		return this;
+    }
+
+    sub_component(index, value){
+        switch (index){
+			case 0: this.x -= value; break;
+			case 1: this.y -= value; break;
+			case 2: this.z -= value; break;
 			default: throw new Error("index is out of range: " + index);
 		}
 		return this;
@@ -51,6 +72,13 @@ export class Vec3 {
         this.x -= v.x;
         this.y -= v.y;
         this.z -= v.z;
+        return this;
+    }
+
+    sub_scalar(s){
+        this.x -= s;
+        this.y -= s;
+        this.z -= s;
         return this;
     }
 
@@ -116,22 +144,53 @@ export class Vec3 {
                Math.abs(this.z) <= EPSILON;
     }
 
+    abs(){
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        this.z = Math.abs(this.z);
+        return this;
+    }
+
     round(){
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);
+        return this;
     }
 
     floor(){
         this.x = Math.floor(this.x);
         this.y = Math.floor(this.y);
         this.z = Math.floor(this.z);
+        return this;
+    }
+
+    sign(){
+        this.x = Math.sign(this.x);
+        this.y = Math.sign(this.y);
+        this.z = Math.sign(this.z);
+        return this;
+    }
+
+    step(){
+        this.x = this.x < 0 ? 0 : this.x;
+        this.y = this.y < 0 ? 0 : this.y;
+        this.z = this.z < 0 ? 0 : this.z;
+        return this;
+    }
+
+    reciprocal(){
+        this.x = 1 / this.x;
+        this.y = 1 / this.y;
+        this.z = 1 / this.z;
+        return this;
     }
 
     lerp(v,t){
         this.x += (v.x - this.x) * t;
         this.y += (v.y - this.y) * t;
         this.z += (v.z - this.z) * t;
+        return this;
     }
 
     rotate_x(deg){
@@ -140,6 +199,7 @@ export class Vec3 {
         s = Math.sin(rad), c = Math.cos(rad);
         this.y = y*c - z*s;
         this.z = y*s + z*c;
+        return this;
     }
     
     rotate_y(deg){
@@ -148,6 +208,7 @@ export class Vec3 {
         s = Math.sin(rad), c = Math.cos(rad);
         this.x = z*s + x*c;
         this.z = z*c - x*s;
+        return this;
     }
     
     rotate_z(deg){
@@ -156,5 +217,6 @@ export class Vec3 {
         s = Math.sin(rad), c = Math.cos(rad);
         this.x = x*c - y*s;
         this.y = x*s + y*c;
+        return this;
     }
 }

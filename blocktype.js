@@ -24,8 +24,6 @@ export class BlockType {
     static types = [];
     static bitmap_to_type = new Map();
 
-    static enable_outlines = true;
-
     static ambient = 0.25;
 
     static light_vec0 = new Vec3(2,3,1).normalize();
@@ -103,7 +101,7 @@ export class BlockType {
         for (var component = 0; component < 3; component++){
             for (var direction = -1; direction <= 1; direction += 2){
                 var normal = new Vec3(0,0,0);
-                normal.set(component,direction);
+                normal.set_component(component,direction);
                 var plane = new Plane(normal,direction == 1 ? 1 : 0);
                 func(component, direction, index, plane);
                 index++;
@@ -195,12 +193,12 @@ export class BlockType {
         });
     }
 
-    draw_clipped_face(x, y, z, index, neighbor_id, color){
+    draw_clipped_face(x, y, z, index, neighbor_id, color, enable_outline){
         var face = this.clipped_faces[index][neighbor_id];
         var brightness = BlockType.border_brightnesses[index];
         switch (face.length){
             case 3:
-                Immediate.set_type(BlockType.enable_outlines ? 3 : 0);
+                Immediate.set_type(enable_outline ? 3 : 0);
                 face.forEach((position)=>{
                     Immediate.vertex(
                         x + position.x, y + position.y, z + position.z,
@@ -213,7 +211,7 @@ export class BlockType {
                 });
                 break;
             case 4:
-                Immediate.set_type(BlockType.enable_outlines ? 2 : 0);
+                Immediate.set_type(enable_outline ? 2 : 0);
                 for (var i = 0; i <= 2; i += 2){
                     for (var j = 0; j < 3; j++){
                         var p = face[(i+j) % 4];
@@ -231,13 +229,13 @@ export class BlockType {
         }
     }
 
-    draw_non_border_faces(x, y, z, color){
+    draw_non_border_faces(x, y, z, color, enable_outline){
         this.non_border_face_ids.forEach((face_id)=>{
             var face = this.faces[face_id];
             var brightness = this.brightnesses[face_id];
             switch (face.length){
                 case 3:
-                    Immediate.set_type(BlockType.enable_outlines ? 3 : 0);
+                    Immediate.set_type(enable_outline ? 3 : 0);
                     face.forEach((pos_id)=>{
                         var position = this.positions[pos_id];
                         Immediate.vertex(
@@ -251,7 +249,7 @@ export class BlockType {
                     });
                     break;
                 case 4:
-                    Immediate.set_type(BlockType.enable_outlines ? 2 : 0);
+                    Immediate.set_type(enable_outline ? 2 : 0);
                     for (var i = 0; i <= 2; i += 2){
                         for (var j = 0; j < 3; j++){
                             var position = this.positions[face[(i+j) % 4]];
