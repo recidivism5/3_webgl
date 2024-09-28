@@ -54,25 +54,25 @@ export class Chunk {
                 component,
                 neighbor_pos.get(component) + direction
             );
-            var id = this.get_block_id(
+            var neighbor_id = this.get_block_id(
                 neighbor_pos.x,
                 neighbor_pos.y,
                 neighbor_pos.z
             );
-            if (id == -1){
+            if (neighbor_id == -1){
                 neighbor_pos.set(
                     component,
                     World.to_chunk_local(neighbor_pos.get(component))
                 );
                 var neighbor_chunk = this.neighbors[index];
                 if (neighbor_chunk == undefined) return;
-                id = neighbor_chunk.get_block_id(
+                neighbor_id = neighbor_chunk.get_block_id(
                     neighbor_pos.x,
                     neighbor_pos.y,
                     neighbor_pos.z
                 );
             }
-            type.draw_clipped_face(x, y, z, index, id, color);
+            type.draw_clipped_face(x, y, z, index, neighbor_id, color);
         });
         type.draw_non_border_faces(x, y, z, color);
     }
