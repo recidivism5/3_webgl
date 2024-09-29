@@ -1,5 +1,6 @@
 import {Player} from "./player.js"
 import {BlockType} from "./blocktype.js"
+import {World} from "./world.js"
 
 export class Input {
     static mouse_sensitivity = 0.1;
@@ -13,6 +14,17 @@ export class Input {
         if (document.pointerLockElement != null){
             Player.humanoid.head_rotation_x -= Input.mouse_sensitivity * event.movementY;
             Player.humanoid.head_rotation_y -= Input.mouse_sensitivity * event.movementX;
+        }
+    }
+
+    static mousedown(event){
+        if (Player.raycast != null){
+            World.set_block_id(
+                Player.raycast.position.x,
+                Player.raycast.position.y,
+                Player.raycast.position.z,
+                0
+            );
         }
     }
 
@@ -42,6 +54,7 @@ export class Input {
             });
         });
         document.addEventListener("mousemove",Input.mousemove);
+        document.addEventListener("mousedown",Input.mousedown);
         document.addEventListener("keydown",Input.keydown);
         document.addEventListener("keyup",Input.keyup);
     }

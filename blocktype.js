@@ -88,9 +88,15 @@ export class BlockType {
         });
 
         this.non_border_face_ids = [];
+        this.non_border_faces = [];
         for (var i = 0; i < this.faces.length; i++){
             if (!this.border_face_ids.includes(i)){
                 this.non_border_face_ids.push(i);
+                var positions = [];
+                this.faces[i].forEach((id)=>{
+                    positions.push(this.positions[id]);
+                });
+                this.non_border_faces.push(BlockType.triangulate(positions));
             }
         }
 
@@ -110,7 +116,7 @@ export class BlockType {
         }
     }
 
-    clip_face(normal, a, b){
+    static clip_face(normal, a, b){
         if (a.length == 4 && b.length == 3){
             Math.abs(0);
         }
@@ -171,6 +177,14 @@ export class BlockType {
         return clipped;
     }
 
+    static triangulate(face){
+        switch (face.length){
+            case 3: return face;
+            case 4: return [face[0],face[1],face[2], face[2],face[3],face[0]];
+            default: return null;
+        }
+    }
+
     get_border_face(border_id){
         var face = [];
         var face_id = this.border_face_ids[border_id];
@@ -188,84 +202,42 @@ export class BlockType {
             BlockType.types.forEach((type)=>{
                 var neighbor_face = type.get_border_face(inv[index]);
                 this.clipped_faces[index].push(
-                    this.clip_face(plane.normal,face,neighbor_face)
+                    BlockType.triangulate(
+                        BlockType.clip_face(plane.normal,face,neighbor_face)
+                    )
                 );
             });
         });
     }
 
-    draw_clipped_face(x, y, z, index, neighbor_id, color, enable_outline){
-        var face = this.clipped_faces[index][neighbor_id];
-        var brightness = BlockType.border_brightnesses[index];
-        switch (face.length){
-            case 3:
-                Immediate.set_type(enable_outline ? 3 : 0);
-                face.forEach((position)=>{
-                    Immediate.vertex(
-                        x + position.x, y + position.y, z + position.z,
-                        brightness * color.r,
-                        brightness * color.g,
-                        brightness * color.b,
-                        color.a,
-                        0,0,0,255
-                    );
-                });
-                break;
-            case 4:
-                Immediate.set_type(enable_outline ? 2 : 0);
-                for (var i = 0; i <= 2; i += 2){
-                    for (var j = 0; j < 3; j++){
-                        var p = face[(i+j) % 4];
-                        Immediate.vertex(
-                            x + p.x, y + p.y, z + p.z,
-                            brightness * color.r,
-                            brightness * color.g,
-                            brightness * color.b,
-                            color.a,
-                            0,0,0,255
-                        );
-                    }
-                }
-                break;
-        }
+    static draw_face(x, y, z, face, brightness, color){
+        Immediate.color(
+            brightness * color.r,
+            brightness * color.g,
+            brightness * color.b,
+            255
+        );
+        face.forEach((position)=>{
+            Immediate.position(
+                x + position.x,
+                y + position.y,
+                z + position.z
+            );
+        });
     }
 
-    draw_non_border_faces(x, y, z, color, enable_outline){
-        this.non_border_face_ids.forEach((face_id)=>{
-            var face = this.faces[face_id];
+    draw_clipped_face(x, y, z, index, neighbor_id, color){
+        var face = this.clipped_faces[index][neighbor_id];
+        if (face == null) return;
+        var brightness = BlockType.border_brightnesses[index];
+        BlockType.draw_face(x, y, z, face, brightness, color);
+    }
+
+    draw_non_border_faces(x, y, z, color){
+        this.non_border_face_ids.forEach((face_id, index)=>{
+            var face = this.non_border_faces[index];
             var brightness = this.brightnesses[face_id];
-            switch (face.length){
-                case 3:
-                    Immediate.set_type(enable_outline ? 3 : 0);
-                    face.forEach((pos_id)=>{
-                        var position = this.positions[pos_id];
-                        Immediate.vertex(
-                            x + position.x, y + position.y, z + position.z,
-                            brightness * color.r,
-                            brightness * color.g,
-                            brightness * color.b,
-                            color.a,
-                            0,0,0,255
-                        );
-                    });
-                    break;
-                case 4:
-                    Immediate.set_type(enable_outline ? 2 : 0);
-                    for (var i = 0; i <= 2; i += 2){
-                        for (var j = 0; j < 3; j++){
-                            var position = this.positions[face[(i+j) % 4]];
-                            Immediate.vertex(
-                                x + position.x, y + position.y, z + position.z,
-                                brightness * color.r,
-                                brightness * color.g,
-                                brightness * color.b,
-                                color.a,
-                                0,0,0,255
-                            );
-                        }
-                    }
-                    break;
-            }
+            BlockType.draw_face(x, y, z, face, brightness, color);
         });
     }
 

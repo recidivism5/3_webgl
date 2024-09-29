@@ -32,11 +32,7 @@ export class Chunk {
         for (var z = 0; z < Chunk.width; z++){
             for (var x = 0; x < Chunk.width; x++){
                 this.set_block_id(x, 0, z, 1);
-                this.set_block_color_id(x, 0, z, Palette.get_random_id());
-                if (x%2){
-                    this.set_block_id(x, 1, z, BlockType.get_random_id());
-                    this.set_block_color_id(x, 1, z, Palette.get_random_id());
-                }
+                this.set_block_color_id(x, 0, z, 2);
             }
         }
     }
@@ -49,11 +45,6 @@ export class Chunk {
     }
 
     draw_block(x, y, z, type, color){
-        var enable_outline = Player.is_targeting_block(
-            this.x * Chunk.width + x,
-            y,
-            this.z * Chunk.width + z
-        );
         BlockType.iterate_borders((component, direction, index, plane)=>{
             var neighbor_pos = new Vec3(x, y, z);
             neighbor_pos.set_component(
@@ -78,9 +69,9 @@ export class Chunk {
                     neighbor_pos.z
                 );
             }
-            type.draw_clipped_face(x, y, z, index, neighbor_id, color, enable_outline);
+            type.draw_clipped_face(x, y, z, index, neighbor_id, color);
         });
-        type.draw_non_border_faces(x, y, z, color, enable_outline);
+        type.draw_non_border_faces(x, y, z, color);
     }
 
     draw(){

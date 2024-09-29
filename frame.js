@@ -1,7 +1,7 @@
 import {Tick} from "./tick.js"
 import {World} from "./world.js"
 import {Player} from "./player.js"
-import {Crosshair} from "./crosshair.js"
+import {Gui} from "./gui.js"
 
 var before = -1.0;
 var accumulated_time = 0.0;
@@ -36,7 +36,7 @@ export class Frame {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl.useProgram(wireframeshader);
+        gl.useProgram(color_shader);
 
         Player.update_raycast();
 
@@ -44,7 +44,7 @@ export class Frame {
 
         World.draw();
 
-        Crosshair.draw();
+        Gui.draw();
         
         requestAnimationFrame(Frame.do);
     }

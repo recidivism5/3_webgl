@@ -10,13 +10,11 @@ async function main(){
         return;
     }
 
-    gl.getExtension('OES_standard_derivatives');
-
     async function load_shader(name){
-        var vsRes = await fetch("shaders/"+name+"/vs.glsl");
+        var vsRes = await fetch("shaders/"+name+"/vert");
         var vsSrc = await vsRes.text();
     
-        var fsRes = await fetch("shaders/"+name+"/fs.glsl");
+        var fsRes = await fetch("shaders/"+name+"/frag");
         var fsSrc = await fsRes.text();
     
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -47,7 +45,7 @@ async function main(){
         return program;
     }
 
-    window.wireframeshader = await load_shader("wireframe");
+    window.color_shader = await load_shader("color");
 
     BlockType.init();
 
