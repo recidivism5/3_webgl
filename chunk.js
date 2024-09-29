@@ -78,8 +78,8 @@ export class Chunk {
         Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.push();
         Mat4Stack.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
-        Mat4Stack.upload();
-        Immediate.begin();
+        
+        Immediate.begin_tris();
         this.update_neighbors();
         for (var y = 0; y < Chunk.height; y++){
             for (var z = 0; z < Chunk.width; z++){
@@ -93,6 +93,7 @@ export class Chunk {
             }
         }
         Immediate.end();
+        
         Mat4Stack.pop();
     }
 

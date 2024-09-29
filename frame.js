@@ -2,6 +2,8 @@ import {Tick} from "./tick.js"
 import {World} from "./world.js"
 import {Player} from "./player.js"
 import {Gui} from "./gui.js"
+import {BlockType} from "./blocktype.js"
+import {Immediate} from "./immediate.js"
 
 var before = -1.0;
 var accumulated_time = 0.0;
@@ -43,6 +45,13 @@ export class Frame {
         Player.use_camera();
 
         World.draw();
+
+        if (Player.raycast){
+            var pos = Player.raycast.position;
+            var block_id = World.get_block_id(pos.x, pos.y, pos.z);
+            var block_type = BlockType.get(block_id);
+            block_type.draw_wireframe(pos.x, pos.y, pos.z);
+        }
 
         Gui.draw();
         

@@ -1,3 +1,5 @@
+import {Mat4Stack} from "./mat4stack.js";
+
 const vertex_size = 4*4;
 
 var vertices = new ArrayBuffer(vertex_size * 65536);
@@ -5,6 +7,7 @@ var f32 = new Float32Array(vertices);
 var u8 = new Uint8Array(vertices);
 var vcount = 0;
 var _color = [255,255,255,255];
+var type = null;
 
 function setattrib(name, size, type, normalize, stride, offset){
     var shader = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -14,7 +17,14 @@ function setattrib(name, size, type, normalize, stride, offset){
 }
 
 export class Immediate {
-    static begin(){
+
+    static begin_tris(){
+        type = gl.TRIANGLES;
+        vcount = 0;
+    }
+
+    static begin_lines(){
+        type = gl.LINES;
         vcount = 0;
     }
     
@@ -34,13 +44,15 @@ export class Immediate {
     }
     
     static end(){
+        Mat4Stack.upload();
+
         var vbo = gl.createBuffer();
     
         gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
         gl.bufferData(gl.ARRAY_BUFFER,f32.subarray(0,vcount*4),gl.STATIC_DRAW);
         setattrib("a_position",3,gl.FLOAT,false,vertex_size,0);
         setattrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
-        gl.drawArrays(gl.TRIANGLES,0,vcount);
+        gl.drawArrays(type,0,vcount);
     
         /*
         var s = "";

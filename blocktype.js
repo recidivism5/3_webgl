@@ -72,6 +72,46 @@ export class BlockType {
             );
         });
 
+        this.wire_positions = [];
+        this.position_normals = [];
+        this.unique_edges = [];
+        this.faces.forEach((face, face_id)=>{
+            face.forEach((pos_id)=>{
+                if (this.position_normals[pos_id] == undefined){
+                    this.position_normals[pos_id] = [];
+                }
+                this.position_normals[pos_id].push(this.planes[face_id].normal);
+            });
+            for (var i = 0; i < face.length; i++){
+                var j = (i + 1) % face.length;
+                var edgef = [face[i],face[j]];
+                var edger = [face[j],face[i]];
+                var found = false;
+                for (var k = 0; k < this.unique_edges.length; k++){
+                    var edge = this.unique_edges[k];
+                    if (
+                        (edge[0] == edgef[0] && edge[1] == edgef[1]) ||
+                        (edge[0] == edger[0] && edge[1] == edger[1])
+                    ){
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) continue;
+                this.unique_edges.push(edgef);
+            }
+        });
+        this.position_normals.forEach((normals, pos_id)=>{
+            var sum = new Vec3(0,0,0);
+            normals.forEach((normal)=>{
+                sum.add(normal);
+            });
+            sum.normalize();
+            sum.scale(0.005);
+            sum.add(this.positions[pos_id]);
+            this.wire_positions.push(sum);
+        });
+
         this.border_face_ids = [];
         BlockType.iterate_borders((component, direction, index, plane)=>{
             var found = false;
@@ -239,6 +279,22 @@ export class BlockType {
             var brightness = this.brightnesses[face_id];
             BlockType.draw_face(x, y, z, face, brightness, color);
         });
+    }
+
+    draw_wireframe(x, y, z){
+        Immediate.begin_lines();
+        Immediate.color(0,0,0,255);
+        this.unique_edges.forEach((edge)=>{
+            edge.forEach((pos_id)=>{
+                var pos = this.wire_positions[pos_id];
+                Immediate.position(
+                    x + pos.x,
+                    y + pos.y,
+                    z + pos.z
+                );
+            });
+        });
+        Immediate.end();
     }
 
     static get_by_bitmap(bitmap){

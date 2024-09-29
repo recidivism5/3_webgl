@@ -19,11 +19,10 @@ export class Gui {
         Mat4Stack.ortho(0,canvas.width,0,canvas.height,-1,1);
         Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.load_identity();
-        Mat4Stack.upload();
 
         gl.blendFunc(gl.ONE_MINUS_DST_COLOR, gl.ONE_MINUS_SRC_COLOR);
         gl.disable(gl.DEPTH_TEST);
-        Immediate.begin();
+        Immediate.begin_tris();
         Immediate.color(255, 255, 255, 127);
         const radius = 2;
         const thickness = 2;
