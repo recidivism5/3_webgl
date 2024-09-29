@@ -21,6 +21,7 @@ class ExpandedPosition {
 }
 
 export class BlockType {
+    static base_types = [];
     static types = [];
     static bitmap_to_type = new Map();
 
@@ -320,6 +321,11 @@ export class BlockType {
                         rotated_expanded_positions,
                         expanded_faces
                     );
+                    if (x == 0 && y == 0 && z == 0){
+                        BlockType.base_types.push(
+                            BlockType.types[BlockType.types.length-1]
+                        );
+                    }
                 }
             }
         }
