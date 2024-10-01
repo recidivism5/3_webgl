@@ -11,13 +11,15 @@ export class Raycast {
         var recip_dir = direction.clone().abs().reciprocal();
         var ts = block_pos.clone().add(step).sub(origin).abs().mul(recip_dir);
         var t = 0;
+        var min_i = 0;
         while (t <= 1){
             var block_id = World.get_block_id(block_pos.x, block_pos.y, block_pos.z);
             if (block_id > 0){
-                return new Raycast(block_pos,null);
+                var normal = new Vec3(0,0,0);
+                normal.set_component(min_i,-increment.get_component(min_i));
+                return new Raycast(block_pos,normal);
             }
             var min_t = Infinity;
-            var min_i = 0;
             for (var i = 0; i < 3; i++){
                 var tc = ts.get_component(i);
                 if (tc < min_t){

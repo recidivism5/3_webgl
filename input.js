@@ -1,6 +1,8 @@
 import {Player} from "./player.js"
 import {BlockType} from "./blocktype.js"
 import {World} from "./world.js"
+import {Palette} from "./palette.js";
+import { RingValue } from "./ringvalue.js";
 
 export class Input {
     static mouse_sensitivity = 0.1;
@@ -9,6 +11,11 @@ export class Input {
     static right = false;
     static forward = false;
     static backward = false;
+
+    static selected_block_id = null;
+    static selected_block_color_id = null;
+
+    static color_mod = false;
 
     static mousemove(event){
         if (document.pointerLockElement != null){
@@ -19,12 +26,41 @@ export class Input {
 
     static mousedown(event){
         if (Player.raycast != null){
-            World.set_block_id(
-                Player.raycast.position.x,
-                Player.raycast.position.y,
-                Player.raycast.position.z,
-                0
-            );
+            var pos = Player.raycast.position;
+            var normal = Player.raycast.normal;
+            switch (event.button){
+                case 0: 
+                    World.set_block_id(
+                        pos.x,
+                        pos.y,
+                        pos.z,
+                        0
+                    );
+                    break;
+                case 2:
+                    World.set_block_id(
+                        pos.x + normal.x,
+                        pos.y + normal.y,
+                        pos.z + normal.z,
+                        Input.selected_block_id.get()
+                    );
+                    World.set_block_color_id(
+                        pos.x + normal.x,
+                        pos.y + normal.y,
+                        pos.z + normal.z,
+                        Input.selected_block_color_id.get()
+                    );
+                    break;
+            }
+        }
+    }
+
+    static wheel(event){
+        var inc = Math.sign(event.deltaY);
+        if (Input.color_mod){
+            Input.selected_block_color_id.add(inc);
+        } else {
+            Input.selected_block_id.add(inc);
         }
     }
 
@@ -35,6 +71,7 @@ export class Input {
             case "KeyS": Input.backward = true; break;
             case "KeyW": Input.forward = true; break;
             case "KeyF": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
+            case "KeyC": Input.color_mod = true; break;
         }
     }
     
@@ -44,6 +81,7 @@ export class Input {
             case "KeyD": Input.right = false; break;
             case "KeyS": Input.backward = false; break;
             case "KeyW": Input.forward = false; break;
+            case "KeyC": Input.color_mod = false; break;
         }
     }
     
@@ -55,7 +93,11 @@ export class Input {
         });
         document.addEventListener("mousemove",Input.mousemove);
         document.addEventListener("mousedown",Input.mousedown);
+        document.addEventListener("wheel",Input.wheel);
         document.addEventListener("keydown",Input.keydown);
         document.addEventListener("keyup",Input.keyup);
+
+        Input.selected_block_id = new RingValue(BlockType.types.length,0);
+        Input.selected_block_color_id = new RingValue(Palette.colors.length,0);
     }
 }

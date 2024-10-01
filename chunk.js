@@ -32,7 +32,7 @@ export class Chunk {
         for (var z = 0; z < Chunk.width; z++){
             for (var x = 0; x < Chunk.width; x++){
                 this.set_block_id(x, 0, z, 1);
-                this.set_block_color_id(x, 0, z, 2);
+                this.set_block_color_id(x, 0, z, 6);
             }
         }
     }
@@ -93,7 +93,7 @@ export class Chunk {
             }
         }
         Immediate.end();
-        
+
         Mat4Stack.pop();
     }
 

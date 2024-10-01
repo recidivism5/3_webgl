@@ -1,14 +1,28 @@
 import {Mat4Stack} from "./mat4stack.js";
 import {Immediate} from "./immediate.js";
 import {Color} from "./color.js"
+import {BlockType} from "./blocktype.js"
+import {Palette} from "./palette.js"
+import {Input} from "./input.js";
 
-function rect(x, y, width, height, color){
-    Immediate.vertex(0, 50, 0, color.r,color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
-    Immediate.vertex(0, 0, 0, hotbar_color.r,hotbar_color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
-    Immediate.vertex(canvas.width, 0, 0, hotbar_color.r,hotbar_color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
-    Immediate.vertex(canvas.width, 0, 0, hotbar_color.r,hotbar_color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
-    Immediate.vertex(canvas.width, 50, 0, hotbar_color.r,hotbar_color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
-    Immediate.vertex(0, 50, 0, hotbar_color.r,hotbar_color.g,hotbar_color.b,hotbar_color.a, 0, 0, 0, 0);
+function rect(x, y, z, width, height){
+    Immediate.position(x, y+height, z);
+    Immediate.position(x, y, z);
+    Immediate.position(x+width, y, z);
+    Immediate.position(x+width, y, z);
+    Immediate.position(x+width, y+height, z);
+    Immediate.position(x, y+height, z);
+}
+
+function hollow_rect(x, y, z, width, height, thickness){
+    rect(x,y,z,width,thickness);
+    rect(x,y+thickness,z,thickness,height-thickness);
+    rect(x+width-thickness,y+thickness,z,thickness,height-thickness);
+    rect(x,y+height-thickness,z,width,thickness);
+}
+
+function hollow_rect_centered(x, y, z, width, height, thickness){
+    hollow_rect(x - width/2, y - height/2, z, width, height, thickness);
 }
 
 export class Gui {
@@ -16,7 +30,7 @@ export class Gui {
     static draw(){
         Mat4Stack.mode(Mat4Stack.PROJECTION);
         Mat4Stack.load_identity();
-        Mat4Stack.ortho(0,canvas.width,0,canvas.height,-1,1);
+        Mat4Stack.ortho(0,canvas.width,0,canvas.height,-100,100);
         Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.load_identity();
 
@@ -49,5 +63,43 @@ export class Gui {
         }
         Immediate.end();
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        BlockType.types.forEach((type, index)=>{
+            const block_size = 50;
+            const total_width = BlockType.types.length * block_size;
+            var x = center_x - total_width/2 + block_size/2 + index * block_size;
+            var y = 100;
+
+            Immediate.begin_tris();
+            if (index == Input.selected_block_id.get()){
+                Immediate.color(255,0,0,255);
+                hollow_rect_centered(x,y,1,56,56,6);
+            } else {
+                Immediate.color(0,0,0,255);
+                hollow_rect_centered(x,y,0,54,54,4);
+            }
+            Immediate.end();
+        });
+
+        BlockType.types.forEach((type, index)=>{
+            const block_size = 50;
+            const total_width = BlockType.types.length * block_size;
+            var x = center_x - total_width/2 + block_size/2 + index * block_size;
+            var y = 100;
+
+            Mat4Stack.push();
+            Mat4Stack.translate(x,y,0);
+            Mat4Stack.scale(block_size/2,block_size/2,block_size/2);
+            Mat4Stack.rotate_x(30);
+            Mat4Stack.rotate_y(45);
+            Mat4Stack.translate(-.5,-.5,-.5);
+            Immediate.begin_tris();
+            type.draw(Palette.get(Input.selected_block_color_id.get()));
+            Immediate.end();
+            Mat4Stack.pop();
+        });
+        
     }
 }

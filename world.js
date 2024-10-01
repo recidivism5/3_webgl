@@ -59,4 +59,15 @@ export class World {
             val
         );
     }
+
+    static set_block_color_id(x, y, z, val){
+        var chunk = World.get_chunk_from_block_coords(x, z);
+        if (chunk == undefined) return;
+        return chunk.set_block_color_id(
+            World.to_chunk_local(x),
+            y,
+            World.to_chunk_local(z),
+            val
+        );
+    }
 }

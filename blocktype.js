@@ -35,7 +35,7 @@ export class BlockType {
             0,
             normal.dot(BlockType.light_vec0),
             normal.dot(BlockType.light_vec1)
-        ) + BlockType.ambient);
+        )*(1-BlockType.ambient) + BlockType.ambient);
     }
 
     static border_brightnesses = [];
@@ -55,6 +55,15 @@ export class BlockType {
 
         this.positions.forEach((p)=>{
             p.scale(0.5);
+        });
+
+        this.triangulated_faces = [];
+        this.faces.forEach((face)=>{
+            var positions = [];
+            face.forEach((pos_id)=>{
+                positions.push(this.positions[pos_id]);
+            });
+            this.triangulated_faces.push(BlockType.triangulate(positions));
         });
 
         this.planes = [];
@@ -128,15 +137,9 @@ export class BlockType {
         });
 
         this.non_border_face_ids = [];
-        this.non_border_faces = [];
         for (var i = 0; i < this.faces.length; i++){
             if (!this.border_face_ids.includes(i)){
                 this.non_border_face_ids.push(i);
-                var positions = [];
-                this.faces[i].forEach((id)=>{
-                    positions.push(this.positions[id]);
-                });
-                this.non_border_faces.push(BlockType.triangulate(positions));
             }
         }
 
@@ -266,6 +269,13 @@ export class BlockType {
         });
     }
 
+    draw(color){
+        this.triangulated_faces.forEach((face, face_id)=>{
+            var brightness = this.brightnesses[face_id];
+            BlockType.draw_face(0, 0, 0, face, brightness, color);
+        });
+    }
+
     draw_clipped_face(x, y, z, index, neighbor_id, color){
         var face = this.clipped_faces[index][neighbor_id];
         if (face == null) return;
@@ -274,8 +284,8 @@ export class BlockType {
     }
 
     draw_non_border_faces(x, y, z, color){
-        this.non_border_face_ids.forEach((face_id, index)=>{
-            var face = this.non_border_faces[index];
+        this.non_border_face_ids.forEach((face_id)=>{
+            var face = this.triangulated_faces[face_id];
             var brightness = this.brightnesses[face_id];
             BlockType.draw_face(x, y, z, face, brightness, color);
         });
