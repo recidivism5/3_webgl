@@ -8,6 +8,7 @@ var u8 = new Uint8Array(vertices);
 var vcount = 0;
 var _color = [255,255,255,255];
 var type = null;
+var vbo = null;
 
 function setattrib(name, size, type, normalize, stride, offset){
     var shader = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -46,12 +47,17 @@ export class Immediate {
     static end(){
         Mat4Stack.upload();
 
-        var vbo = gl.createBuffer();
+        if (vbo == null){
+            vbo = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+            gl.bufferData(gl.ARRAY_BUFFER,vertex_size * 65536,gl.DYNAMIC_DRAW);
+            setattrib("a_position",3,gl.FLOAT,false,vertex_size,0);
+            setattrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
+        }
     
         gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-        gl.bufferData(gl.ARRAY_BUFFER,f32.subarray(0,vcount*4),gl.STATIC_DRAW);
-        setattrib("a_position",3,gl.FLOAT,false,vertex_size,0);
-        setattrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
+        gl.bufferSubData(gl.ARRAY_BUFFER,0,f32.subarray(0,vcount*4));
+        
         gl.drawArrays(type,0,vcount);
     
         /*
@@ -64,6 +70,6 @@ export class Immediate {
         console.log(s);
         */
         
-        gl.deleteBuffer(vbo);
+        //gl.deleteBuffer(vbo);
     }
 }

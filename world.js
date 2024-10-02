@@ -5,8 +5,8 @@ export class World {
     static chunks = new Map();
 
     static init(){
-        for (var z = 0; z <= 2; z++){
-            for (var x = 0; x <= 2; x++){
+        for (var z = -2; z <= 2; z++){
+            for (var x = -2; x <= 2; x++){
                 var chunk = new Chunk(x, z);
                 World.chunks.set(chunk.get_key(), chunk);
             }
@@ -19,12 +19,12 @@ export class World {
         });
     }
 
-    static to_chunk_local(component){
-        return (Chunk.width + (component % Chunk.width)) % Chunk.width;
+    static get_block_offset(component){
+        return component & 0xf;
     }
 
-    static to_chunk_global(component){
-        return (component < 0 ? -1 : 0) + Math.trunc(component / Chunk.width);
+    static get_chunk_coord(component){
+        return component >> 4;
     }
 
     static get_chunk(x, z){
@@ -34,8 +34,8 @@ export class World {
 
     static get_chunk_from_block_coords(x, z){
         return World.get_chunk(
-            World.to_chunk_global(x),
-            World.to_chunk_global(z)
+            World.get_chunk_coord(x),
+            World.get_chunk_coord(z)
         );
     }
 
@@ -43,9 +43,9 @@ export class World {
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return -1;
         return chunk.get_block_id(
-            World.to_chunk_local(x),
+            World.get_block_offset(x),
             y,
-            World.to_chunk_local(z)
+            World.get_block_offset(z)
         );
     }
 
@@ -53,9 +53,9 @@ export class World {
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return;
         return chunk.set_block_id(
-            World.to_chunk_local(x),
+            World.get_block_offset(x),
             y,
-            World.to_chunk_local(z),
+            World.get_block_offset(z),
             val
         );
     }
@@ -64,9 +64,9 @@ export class World {
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return;
         return chunk.set_block_color_id(
-            World.to_chunk_local(x),
+            World.get_block_offset(x),
             y,
-            World.to_chunk_local(z),
+            World.get_block_offset(z),
             val
         );
     }
@@ -75,9 +75,9 @@ export class World {
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return -1;
         return chunk.get_block(
-            World.to_chunk_local(x),
+            World.get_block_offset(x),
             y,
-            World.to_chunk_local(z)
+            World.get_block_offset(z)
         );
     }
 
@@ -85,9 +85,9 @@ export class World {
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return;
         return chunk.set_block(
-            World.to_chunk_local(x),
+            World.get_block_offset(x),
             y,
-            World.to_chunk_local(z),
+            World.get_block_offset(z),
             id,
             color_id,
             light

@@ -5,7 +5,7 @@ import {Input} from "./input.js"
 
 async function main(){
     window.canvas = document.querySelector("#canvas");
-    window.gl = canvas.getContext("webgl");
+    window.gl = canvas.getContext("webgl", {antialias: false});
     if (!gl){
         return;
     }

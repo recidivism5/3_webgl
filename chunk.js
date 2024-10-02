@@ -39,7 +39,7 @@ export class Chunk {
     }
 
     update_lights(){
-        
+
     }
 
     update_neighbors(){
@@ -64,7 +64,7 @@ export class Chunk {
             if (neighbor_id == -1){
                 neighbor_pos.set_component(
                     component,
-                    World.to_chunk_local(neighbor_pos.get_component(component))
+                    World.get_block_offset(neighbor_pos.get_component(component))
                 );
                 var neighbor_chunk = this.neighbors[index];
                 if (neighbor_chunk == undefined) return;
