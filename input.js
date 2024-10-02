@@ -70,7 +70,7 @@ export class Input {
             case "KeyD": Input.right = true; break;
             case "KeyS": Input.backward = true; break;
             case "KeyW": Input.forward = true; break;
-            case "KeyF": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
+            //case "KeyF": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
             case "KeyC": Input.color_mod = true; break;
         }
     }
