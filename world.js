@@ -70,4 +70,27 @@ export class World {
             val
         );
     }
+
+    static get_block(x, y, z){
+        var chunk = World.get_chunk_from_block_coords(x, z);
+        if (chunk == undefined) return -1;
+        return chunk.get_block(
+            World.to_chunk_local(x),
+            y,
+            World.to_chunk_local(z)
+        );
+    }
+
+    set_block(x, y, z, id, color_id, light){
+        var chunk = World.get_chunk_from_block_coords(x, z);
+        if (chunk == undefined) return;
+        return chunk.set_block(
+            World.to_chunk_local(x),
+            y,
+            World.to_chunk_local(z),
+            id,
+            color_id,
+            light
+        );
+    }
 }

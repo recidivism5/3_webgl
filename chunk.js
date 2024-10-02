@@ -5,6 +5,7 @@ import {Mat4Stack} from "./mat4stack.js"
 import {Palette} from "./palette.js"
 import {Vec3} from "./vec3.js"
 import {Player} from "./player.js"
+import { Block } from "./block.js"
 
 export class Chunk {
 
@@ -19,6 +20,7 @@ export class Chunk {
         this.x = x;
         this.z = z;
         this.blocks = new Uint8Array(Chunk.width*Chunk.width*Chunk.height*2);
+        this.lights = new Uint8Array(Chunk.width*Chunk.width*Chunk.height);
         this.generate();
         this.neighbors = [];
         this.update_neighbors();
@@ -31,10 +33,13 @@ export class Chunk {
     generate(){
         for (var z = 0; z < Chunk.width; z++){
             for (var x = 0; x < Chunk.width; x++){
-                this.set_block_id(x, 0, z, 1);
-                this.set_block_color_id(x, 0, z, 6);
+                this.set_block(x, 0, z, 1, 6, 15);
             }
         }
+    }
+
+    update_lights(){
+        
     }
 
     update_neighbors(){
@@ -97,6 +102,10 @@ export class Chunk {
         Mat4Stack.pop();
     }
 
+    get_block_offset(x, y, z){
+        return y*Chunk.width*Chunk.width + z*Chunk.width + x;
+    }
+
     get_block_id(x, y, z){
         if (y < 0 || y >= Chunk.height) return 0;
         if (
@@ -105,7 +114,7 @@ export class Chunk {
         ){
             return -1;
         }
-        return this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 0];
+        return this.blocks[this.get_block_offset(x,y,z)*2 + 0];
     }
 
     set_block_id(x, y, z, val){
@@ -116,7 +125,7 @@ export class Chunk {
         ){
             return;
         }
-        this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 0] = val;
+        this.blocks[this.get_block_offset(x,y,z)*2 + 0] = val;
     }
 
     get_block_color_id(x, y, z){
@@ -127,7 +136,7 @@ export class Chunk {
         ){
             return -1;
         }
-        return this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 1];
+        return this.blocks[this.get_block_offset(x,y,z)*2 + 1];
     }
 
     set_block_color_id(x, y, z, val){
@@ -138,6 +147,36 @@ export class Chunk {
         ){
             return;
         }
-        this.blocks[(y*Chunk.width*Chunk.width + z*Chunk.width + x)*2 + 1] = val;
+        this.blocks[this.get_block_offset(x,y,z)*2 + 1] = val;
+    }
+
+    get_block(x, y, z){
+        if (y < 0 || y >= Chunk.height) return 0;
+        if (
+            x < 0 || x >= Chunk.width ||
+            z < 0 || z >= Chunk.width
+        ){
+            return -1;
+        }
+        var offset = this.get_block_offset(x,y,z);
+        return new Block(
+            this.blocks[offset*2 + 0],
+            this.blocks[offset*2 + 1],
+            this.lights[offset]
+        );
+    }
+
+    set_block(x, y, z, id, color_id, light){
+        if (
+            x < 0 || x >= Chunk.width ||
+            y < 0 || y >= Chunk.height ||
+            z < 0 || z >= Chunk.width
+        ){
+            return;
+        }
+        var offset = this.get_block_offset(x,y,z);
+        this.blocks[offset*2 + 0] = id;
+        this.blocks[offset*2 + 1] = color_id;
+        this.lights[offset] = light;
     }
 }

@@ -254,13 +254,18 @@ export class BlockType {
     }
 
     static draw_face(x, y, z, face, brightness, color){
-        Immediate.color(
-            brightness * color.r,
-            brightness * color.g,
-            brightness * color.b,
-            255
-        );
-        face.forEach((position)=>{
+        face.forEach((position, index)=>{
+            if (index == 1) Immediate.color(
+                brightness*0.5 * color.r,
+                brightness*0.5 * color.g,
+                brightness*0.5 * color.b,
+                255
+            ); else Immediate.color(
+                brightness * color.r,
+                brightness * color.g,
+                brightness * color.b,
+                255
+            );
             Immediate.position(
                 x + position.x,
                 y + position.y,
