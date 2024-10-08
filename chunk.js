@@ -1,7 +1,6 @@
 import {World} from "./world.js"
 import {BlockType} from "./blocktype.js"
-import {Immediate} from "./immediate.js"
-import {Mat4Stack} from "./mat4stack.js"
+import * as Graphics from "./graphics.js"
 import {Palette} from "./palette.js"
 import {Vec3} from "./vec3.js"
 import {Player} from "./player.js"
@@ -80,10 +79,10 @@ export class Chunk {
     }
 
     draw(){
-        Mat4Stack.push();
-        Mat4Stack.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
+        Graphics.push();
+        Graphics.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
         
-        Immediate.begin_tris();
+        Graphics.begin_tris();
         this.update_neighbors();
         for (var y = 0; y < Chunk.height; y++){
             for (var z = 0; z < Chunk.width; z++){
@@ -96,9 +95,9 @@ export class Chunk {
                 }
             }
         }
-        Immediate.end();
+        Graphics.end();
 
-        Mat4Stack.pop();
+        Graphics.pop();
     }
 
     get_block_offset(x, y, z){

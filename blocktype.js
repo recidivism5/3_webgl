@@ -1,7 +1,7 @@
 import {Vec3} from "./vec3.js"
 import {Plane} from "./plane.js"
 import {EPSILON} from "./epsilon.js"
-import {Immediate} from "./immediate.js"
+import * as Graphics from "./graphics.js"
 import * as random from "./random.js"
 
 function get_bitmap(positions){
@@ -25,17 +25,12 @@ export class BlockType {
     static types = [];
     static bitmap_to_type = new Map();
 
-    static ambient = 0.25;
-
-    static light_vec0 = new Vec3(2,3,1).normalize();
-    static light_vec1 = new Vec3(-2,3,-1).normalize();
-
     static get_brightness(normal){
         return Math.min(1,Math.max(
             0,
-            normal.dot(BlockType.light_vec0),
-            normal.dot(BlockType.light_vec1)
-        )*(1-BlockType.ambient) + BlockType.ambient);
+            normal.dot(Graphics.light_vec0),
+            normal.dot(Graphics.light_vec1)
+        )*(1-Graphics.ambient) + Graphics.ambient);
     }
 
     static border_brightnesses = [];
@@ -255,18 +250,18 @@ export class BlockType {
 
     static draw_face(x, y, z, face, brightness, color){
         face.forEach((position, index)=>{
-            if (index == 1) Immediate.color(
+            if (index == 1) Graphics.color(
                 brightness*0.5 * color.r,
                 brightness*0.5 * color.g,
                 brightness*0.5 * color.b,
                 255
-            ); else Immediate.color(
+            ); else Graphics.color(
                 brightness * color.r,
                 brightness * color.g,
                 brightness * color.b,
                 255
             );
-            Immediate.position(
+            Graphics.position(
                 x + position.x,
                 y + position.y,
                 z + position.z
@@ -297,19 +292,19 @@ export class BlockType {
     }
 
     draw_wireframe(x, y, z){
-        Immediate.begin_lines();
-        Immediate.color(0,0,0,255);
+        Graphics.begin_lines();
+        Graphics.color(0,0,0,255);
         this.unique_edges.forEach((edge)=>{
             edge.forEach((pos_id)=>{
                 var pos = this.wire_positions[pos_id];
-                Immediate.position(
+                Graphics.position(
                     x + pos.x,
                     y + pos.y,
                     z + pos.z
                 );
             });
         });
-        Immediate.end();
+        Graphics.end();
     }
 
     static get_by_bitmap(bitmap){

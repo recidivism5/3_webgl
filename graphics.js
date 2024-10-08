@@ -1,6 +1,5 @@
-import * as Mat4Stack from "./mat4stack.js";
-import * as Vec3 from "./vec3.js"
-import * as Vec4 from "./vec4.js"
+import {Vec3} from "./vec3.js"
+import {Mat4} from "./mat4.js"
 
 const color_vert_src = 
 `
@@ -124,8 +123,6 @@ const color_vertex_size = 4*4;
 
 const buffer_size = color_vertex_size * 65536;
 
-export var canvas;
-export var gl;
 var vertices = new ArrayBuffer(buffer_size);
 var f32 = new Float32Array(vertices);
 var u8 = new Uint8Array(vertices);
@@ -133,14 +130,19 @@ var vcount = 0;
 var vertex_size = 0;
 var type = null;
 var vbo = null;
+var _color = new Uint8Array([255,255,255,255]);
+var _normal = new Float32Array([0,0,1]);
+var _texcoord = new Float32Array([0,0]);
 
 var textures = new Map();
 
 var shader;
 
-const ambient = 0.25;
-const light_vec0 = Vec4.fromValues(2,3,1,0);
-const light_vec1 = Vec4.fromValues(-2,3,-1,0);
+export var canvas;
+export var gl;
+export const ambient = 0.25;
+export const light_vec0 = new Vec3(2,3,1).normalize();
+export const light_vec1 = new Vec3(-2,3,-1).normalize();
 
 export function bind_texture(name){
     var texture = textures.get(name);
@@ -217,17 +219,9 @@ export function init(){
     gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
     gl.bufferData(gl.ARRAY_BUFFER,buffer_size,gl.DYNAMIC_DRAW);
 
+    use_color();
+
     return true;
-}
-
-export function begin_tris(){
-    type = gl.TRIANGLES;
-    vcount = 0;
-}
-
-export function begin_lines(){
-    type = gl.LINES;
-    vcount = 0;
 }
 
 export function use_color(){
@@ -252,19 +246,129 @@ export function use_direct(){
 }
 
 export function submit_direct_view_matrix(){
-    var lv0 = Vec4.create();
-    var lv1 = Vec4.create();
-    Vec4.transformMat4(lv0, light_vec0, Mat4Stack.get());
-    Vec4.transformMat4(lv1, light_vec1, Mat4Stack.get());
-    gl.uniform3fv(gl.getUniformLocation(shader, "u_light_vec0"), lv0);
-    gl.uniform3fv(gl.getUniformLocation(shader, "u_light_vec1"), lv1);
+    var lv0 = light_vec0.clone().transform_mat4_dir(Mat4Stack.get()).normalize();
+    var lv1 = light_vec1.clone().transform_mat4_dir(Mat4Stack.get()).normalize();
+    gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec0"), lv0.x, lv0.y, lv0.z);
+    gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec1"), lv1.x, lv1.y, lv1.z);
+}
+
+export function begin_tris(){
+    type = gl.TRIANGLES;
+    vcount = 0;
+}
+
+export function begin_lines(){
+    type = gl.LINES;
+    vcount = 0;
+}
+
+export function color(r, g, b, a){
+    _color[0] = r;
+    _color[1] = g;
+    _color[2] = b;
+    _color[3] = a;
+}
+
+export function normal(x, y, z){
+    _normal[0] = x;
+    _normal[1] = y;
+    _normal[2] = z;
+}
+
+export function texcoord(u, v){
+    _texcoord[0] = u;
+    _texcoord[1] = v;
+}
+
+export function position(x, y, z){
+    switch (shader){
+        case color_shader:
+            var f32offset = vcount * 4;
+            var u8offset = vcount * 4 * 4 + 3*4;
+            f32[f32offset + 0] = x;
+            f32[f32offset + 1] = y;
+            f32[f32offset + 2] = z;
+            u8.set(_color, u8offset);
+            break;
+
+        case direct_shader:
+            var f32offset = vcount * 9;
+            var u8offset = (f32offset + 8) * 4;
+            f32[f32offset + 0] = x;
+            f32[f32offset + 1] = y;
+            f32[f32offset + 2] = z;
+            f32.set(_normal, f32offset + 3);
+            f32.set(_texcoord, f32offset + 6);
+            u8.set(_color, u8offset);
+            break;
+    }
+    vcount++;
 }
 
 export function end(){
-    Mat4Stack.upload();
+    upload();
 
     gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,f32.subarray(0,vcount * vertex_size));
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,u8.subarray(0,vcount * vertex_size));
     
     gl.drawArrays(type,0,vcount);
+}
+
+var modelview = [Mat4.new_identity()];
+var projection = Mat4.new_identity();
+
+function get(){
+    return modelview[modelview.length-1];
+}
+
+export function push(){
+    modelview.push(get().clone());
+}
+
+export function pop(){
+    if (modelview.length > 1){
+        modelview.pop();
+    }
+}
+
+export function upload(){
+    var shader = gl.getParameter(gl.CURRENT_PROGRAM);
+    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,get().to_array());
+    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection.to_array());
+}
+
+export function load_identity(){
+    get().set_identity();
+}
+
+export function scale(x, y, z){
+    get().scale(x, y, z);
+}
+
+export function translate(x, y, z){
+    get().translate(x, y, z);
+}
+
+export function rotate_x(degrees){
+    get().rotate_x(degrees);
+}
+
+export function rotate_y(degrees){
+    get().rotate_y(degrees);
+}
+
+export function rotate_z(degrees){
+    get().rotate_z(degrees);
+}
+
+export function project_perspective(fovy_degrees, aspect, near, far){
+    projection.set_perspective(fovy_degrees, aspect, near, far);
+}
+
+export function project_ortho(left, right, bottom, top, near, far){
+    projection.set_ortho(left,right,bottom,top,near,far);
+}
+
+export function project_identity(){
+    projection.set_identity();
 }

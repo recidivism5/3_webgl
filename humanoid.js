@@ -1,5 +1,5 @@
 import {Entity} from "./entity.js"
-import {Mat4Stack} from "./mat4stack.js"
+import * as Graphics from "./graphics.js"
 import {Vec3} from "./vec3.js"
 
 export class Humanoid {
@@ -30,12 +30,12 @@ export class Humanoid {
     }
 
     use_camera(){
-        Mat4Stack.project_perspective(90,canvas.width/canvas.height,0.01,100.0);
+        Graphics.project_perspective(90,canvas.width/canvas.height,0.01,100.0);
 
-        Mat4Stack.load_identity();
-        Mat4Stack.rotate_x(-this.head_rotation_x);
-        Mat4Stack.rotate_y(-this.head_rotation_y);
-        Mat4Stack.translate(
+        Graphics.load_identity();
+        Graphics.rotate_x(-this.head_rotation_x);
+        Graphics.rotate_y(-this.head_rotation_y);
+        Graphics.translate(
             -this.head_position.x,
             -this.head_position.y,
             -this.head_position.z,

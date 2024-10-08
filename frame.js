@@ -3,7 +3,8 @@ import {World} from "./world.js"
 import {Player} from "./player.js"
 import {Gui} from "./gui.js"
 import {BlockType} from "./blocktype.js"
-import {Immediate} from "./immediate.js"
+import * as Graphics from "./graphics.js"
+import {gl, canvas} from "./graphics.js"
 
 var before = -1.0;
 var accumulated_time = 0.0;
@@ -34,11 +35,8 @@ export class Frame {
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl.useProgram(color_shader);
+        Graphics.use_color();
 
         Player.update_raycast();
 
