@@ -28,10 +28,7 @@ function hollow_rect_centered(x, y, z, width, height, thickness){
 export class Gui {
 
     static draw(){
-        Mat4Stack.mode(Mat4Stack.PROJECTION);
-        Mat4Stack.load_identity();
-        Mat4Stack.ortho(0,canvas.width,0,canvas.height,-100,100);
-        Mat4Stack.mode(Mat4Stack.MODELVIEW);
+        Mat4Stack.project_ortho(0,canvas.width,0,canvas.height,-100,100);
         Mat4Stack.load_identity();
 
         gl.blendFunc(gl.ONE_MINUS_DST_COLOR, gl.ONE_MINUS_SRC_COLOR);

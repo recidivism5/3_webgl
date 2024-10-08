@@ -1,87 +1,64 @@
-import * as Mat4 from "./mat4.js"
+import {Mat4} from "./mat4.js"
 
-var modelview = [Mat4.create()];
-var projection = [Mat4.create()];
-
-var temp = Mat4.create();
-
-var cur = modelview;
+var modelview = [Mat4.new_identity()];
+var projection = Mat4.new_identity();
 
 function get(){
-    return cur[cur.length-1];
-}
-
-function apply(){
-    Mat4.mul(get(),get(),temp);
+    return modelview[modelview.length-1];
 }
 
 export class Mat4Stack {
-    static MODELVIEW = 0;
-    static PROJECTION = 1;
-
-    static mode(id){
-        if (id == Mat4Stack.MODELVIEW){
-            cur = modelview;
-        } else if (id == Mat4Stack.PROJECTION){
-            cur = projection;
-        } else {
-            console.error("invalid mat4 stack id:",id);
-        }
-    }
 
     static push(){
-        cur.push(Mat4.clone(get()));
+        modelview.push(get().clone());
     }
 
     static pop(){
-        if (cur.length > 1){
-            cur.pop();
+        if (modelview.length > 1){
+            modelview.pop();
         }
     }
 
     static upload(){
         var shader = gl.getParameter(gl.CURRENT_PROGRAM);
-        gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,modelview[modelview.length-1]);
-        gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection[projection.length-1]);
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,get().to_array());
+        gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection.to_array());
     }
 
     static load_identity(){
-        Mat4.identity(get());
+        get().set_identity();
     }
 
     static scale(x, y, z){
-        Mat4.scale(temp, x, y, z);
-        apply();
+        get().scale(x, y, z);
     }
 
     static translate(x, y, z){
-        Mat4.translate(temp, x, y, z);
-        apply();
+        get().translate(x, y, z);
     }
 
     static rotate_x(degrees){
-        Mat4.rotate_x(temp,degrees);
-        apply();
+        get().rotate_x(degrees);
     }
 
     static rotate_y(degrees){
-        Mat4.rotate_y(temp,degrees);
-        apply();
+        get().rotate_y(degrees);
     }
 
     static rotate_z(degrees){
-        Mat4.rotate_z(temp,degrees);
-        apply();
+        get().rotate_z(degrees);
     }
 
-    static perspective(fovy_degrees, aspect, near, far){
-        Mat4.perspective_rh_no(temp,fovy_degrees,aspect,near,far);
-        apply();
+    static project_perspective(fovy_degrees, aspect, near, far){
+        projection.set_perspective(fovy_degrees, aspect, near, far);
     }
 
-    static ortho(left, right, bottom, top, near, far){
-        Mat4.ortho_rh_no(temp,left,right,bottom,top,near,far);
-        apply();
+    static project_ortho(left, right, bottom, top, near, far){
+        projection.set_ortho(left,right,bottom,top,near,far);
+    }
+
+    static project_identity(){
+        projection.set_identity();
     }
     
 }

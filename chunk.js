@@ -80,7 +80,6 @@ export class Chunk {
     }
 
     draw(){
-        Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.push();
         Mat4Stack.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
         

@@ -30,11 +30,8 @@ export class Humanoid {
     }
 
     use_camera(){
-        Mat4Stack.mode(Mat4Stack.PROJECTION);
-        Mat4Stack.load_identity();
-        Mat4Stack.perspective(90,canvas.width/canvas.height,0.01,100.0);
+        Mat4Stack.project_perspective(90,canvas.width/canvas.height,0.01,100.0);
 
-        Mat4Stack.mode(Mat4Stack.MODELVIEW);
         Mat4Stack.load_identity();
         Mat4Stack.rotate_x(-this.head_rotation_x);
         Mat4Stack.rotate_y(-this.head_rotation_y);
