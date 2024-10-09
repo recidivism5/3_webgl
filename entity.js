@@ -2,12 +2,13 @@ import {Vec3} from "./vec3.js"
 import {World} from "./world.js"
 import {AABB} from "./aabb.js"
 import {BlockType} from "./blocktype.js"
+import * as Graphics from "./graphics.js"
 
 export class Entity {
-    constructor(position, width, height, physics_enabled){
-        this.previous_position = position.clone();
-        this.current_position = position.clone();
-        this.interpolated_position = position.clone();
+    constructor(x, y, z, width, height, physics_enabled){
+        this.previous_position = new Vec3(x, y, z);
+        this.current_position = new Vec3(x, y, z);
+        this.interpolated_position = new Vec3(x, y, z);
         this.velocity = new Vec3(0,0,0);
         this.width = width;
         this.height = height;
@@ -62,5 +63,48 @@ export class Entity {
     interpolate(t){
         this.interpolated_position.copy(this.previous_position);
         this.interpolated_position.lerp(this.current_position,t);
+    }
+
+    draw_wireframe(){
+        Graphics.use_color();
+        Graphics.push();
+        Graphics.translate(
+            this.interpolated_position.x - this.width/2,
+            this.interpolated_position.y - this.height/2,
+            this.interpolated_position.z - this.width/2
+        );
+        Graphics.color(0,255,0,255);
+        Graphics.begin_lines();
+            Graphics.position(0,0,0);
+            Graphics.position(this.width,0,0);
+            Graphics.position(0,this.height,0);
+            Graphics.position(this.width,this.height,0);
+
+            Graphics.position(0,0,this.width);
+            Graphics.position(this.width,0,this.width);
+            Graphics.position(0,this.height,this.width);
+            Graphics.position(this.width,this.height,this.width);
+
+            Graphics.position(0,0,0);
+            Graphics.position(0,0,this.width);
+            Graphics.position(this.width,0,0);
+            Graphics.position(this.width,0,this.width);
+
+            Graphics.position(0,this.height,0);
+            Graphics.position(0,this.height,this.width);
+            Graphics.position(this.width,this.height,0);
+            Graphics.position(this.width,this.height,this.width);
+
+            Graphics.position(0,0,0);
+            Graphics.position(0,this.height,0);
+            Graphics.position(this.width,0,0);
+            Graphics.position(this.width,this.height,0);
+
+            Graphics.position(0,0,this.width);
+            Graphics.position(0,this.height,this.width);
+            Graphics.position(this.width,0,this.width);
+            Graphics.position(this.width,this.height,this.width);
+        Graphics.end();
+        Graphics.pop();
     }
 }

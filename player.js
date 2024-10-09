@@ -5,7 +5,7 @@ import {Raycast} from "./raycast.js"
 
 export class Player {
 
-    static humanoid = new Humanoid(new Vec3(4,4,4));
+    static humanoid = new Humanoid(4,4,4);
 
     static raycast = null;
 

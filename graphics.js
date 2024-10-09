@@ -337,6 +337,9 @@ export function get(){
 
 export function push(){
     modelview.push(get().clone());
+    if (modelview.length > 256){
+        console.error("modelview stack exceeded 256 entries");
+    }
 }
 
 export function pop(){
@@ -386,7 +389,6 @@ function coord(v){
 }
 
 export function box(x, y, z, tx, ty){
-    color(255,255,255,255);
     
     var l, r, b, t;
 

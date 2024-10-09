@@ -3,9 +3,9 @@ import * as Graphics from "./graphics.js"
 import {Vec3} from "./vec3.js"
 
 export class Humanoid {
-    constructor (position){
-        this.entity = new Entity(position, 0.6, 1.8, false);
-        this.head_position = position.clone();
+    constructor (x, y, z){
+        this.entity = new Entity(x, y, z, 0.6, 1.8, false);
+        this.head_position = new Vec3(x, y, z);
         this.adjust_head_position();
         this.head_rotation_x = 0;
         this.head_rotation_y = 0;
