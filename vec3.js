@@ -221,9 +221,12 @@ export class Vec3 {
     }
 
     transform_mat4_dir(m){
-        this.x = this.x * m.a11 + this.y * m.a21 + this.z * m.a31;
-        this.y = this.x * m.a12 + this.y * m.a22 + this.z * m.a32;
-        this.z = this.x * m.a13 + this.y * m.a23 + this.z * m.a33;
+        var x = this.x * m.a11 + this.y * m.a21 + this.z * m.a31;
+        var y = this.x * m.a12 + this.y * m.a22 + this.z * m.a32;
+        var z = this.x * m.a13 + this.y * m.a23 + this.z * m.a33;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
     }
 }

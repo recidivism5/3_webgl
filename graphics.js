@@ -65,7 +65,9 @@ uniform vec3 u_light_vec1;
 uniform sampler2D u_sampler;
 
 void main(){
-	float brightness = min(
+	vec4 sample = texture2D(u_sampler, v_texcoord);
+    if (sample.a < 1.0) discard;
+    float brightness = min(
 		1.0,
 		max(
 			max(
@@ -75,7 +77,6 @@ void main(){
 			dot(v_normal,u_light_vec1)
 		) * (1.0 - u_ambient) + u_ambient
 	);
-	vec4 sample = texture2D(u_sampler, v_texcoord);
 	gl_FragColor = vec4(brightness * sample.rgb, sample.a);
 }
 `
@@ -135,6 +136,7 @@ var _normal = new Float32Array([0,0,1]);
 var _texcoord = new Float32Array([0,0]);
 
 var textures = new Map();
+var bound_texture_res = 0;
 
 var shader;
 
@@ -178,6 +180,8 @@ export function bind_texture(name){
             pixel,
         );
 
+        texture.res = width;
+
         textures.set(name, texture);
 
         var image = new Image();
@@ -195,6 +199,8 @@ export function bind_texture(name){
                 image,
             );
 
+            texture.res = image.naturalWidth;
+
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -208,6 +214,7 @@ export function bind_texture(name){
         image.src = "./textures/"+name;
     }
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    bound_texture_res = texture.res;
 }
 
 export function init(){
@@ -253,7 +260,6 @@ export function use_direct(){
 export function submit_lights(){
     var lv0 = light_vec0.clone().transform_mat4_dir(get()).normalize();
     var lv1 = light_vec1.clone().transform_mat4_dir(get()).normalize();
-    console.log(light_vec0,light_vec1,lv0,lv1);
     gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec0"), lv0.x, lv0.y, lv0.z);
     gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec1"), lv1.x, lv1.y, lv1.z);
 }
@@ -373,4 +379,72 @@ export function project_ortho(left, right, bottom, top, near, far){
 
 export function project_identity(){
     projection.set_identity();
+}
+
+function coord(v){
+    return v / bound_texture_res;
+}
+
+export function box(x, y, z, tx, ty){
+    color(255,255,255,255);
+    
+    var l, r, b, t;
+
+    const n = 0.01;
+
+    normal(-1,0,0);
+    l = coord(tx+n); r = coord(tx+x-n);
+    b = coord(ty+n); t = coord(ty+y-n);
+    texcoord(l,t); position(0,y,0);
+    texcoord(l,b); position(0,0,0);
+    texcoord(r,b); position(0,0,z);
+    texcoord(r,b); position(0,0,z);
+    texcoord(r,t); position(0,y,z);
+    texcoord(l,t); position(0,y,0);
+
+    normal(0,0,1);
+    l = coord(tx+x+n); r = coord(tx+2*x-n);
+    texcoord(l,t); position(0,y,z);
+    texcoord(l,b); position(0,0,z);
+    texcoord(r,b); position(x,0,z);
+    texcoord(r,b); position(x,0,z);
+    texcoord(r,t); position(x,y,z);
+    texcoord(l,t); position(0,y,z);
+
+    normal(1,0,0);
+    l = coord(tx+2*x+n); r = coord(tx+3*x-n);
+    texcoord(l,t); position(x,y,z);
+    texcoord(l,b); position(x,0,z);
+    texcoord(r,b); position(x,0,0);
+    texcoord(r,b); position(x,0,0);
+    texcoord(r,t); position(x,y,0);
+    texcoord(l,t); position(x,y,z);
+
+    normal(0,0,-1);
+    l = coord(tx+3*x+n); r = coord(tx+4*x-n);
+    texcoord(l,t); position(x,y,0);
+    texcoord(l,b); position(x,0,0);
+    texcoord(r,b); position(0,0,0);
+    texcoord(r,b); position(0,0,0);
+    texcoord(r,t); position(0,y,0);
+    texcoord(l,t); position(x,y,0);
+
+    normal(0,1,0);
+    l = coord(tx+x+n); r = coord(tx+2*x-n);
+    b = coord(ty+y+n); t = coord(ty+2*y-n);
+    texcoord(l,t); position(0,y,0);
+    texcoord(l,b); position(0,y,z);
+    texcoord(r,b); position(x,y,z);
+    texcoord(r,b); position(x,y,z);
+    texcoord(r,t); position(x,y,0);
+    texcoord(l,t); position(0,y,0);
+
+    normal(0,-1,0);
+    l = coord(tx+2*x+n); r = coord(tx+3*x-n);
+    texcoord(l,t); position(0,0,z);
+    texcoord(l,b); position(0,0,0);
+    texcoord(r,b); position(x,0,0);
+    texcoord(r,b); position(x,0,0);
+    texcoord(r,t); position(x,0,z);
+    texcoord(l,t); position(0,0,z);
 }

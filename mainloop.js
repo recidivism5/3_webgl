@@ -44,13 +44,15 @@ export function main_loop(now){
     Graphics.use_direct();
     Graphics.submit_lights();
     Graphics.push();
-    Graphics.rotate_y(now*4);
+    Graphics.translate(0,4,0);
+    Graphics.rotate_y(now*16);
+    Graphics.scale(1/16,1/16,1/16);
+    //Graphics.rotate_x(now*8);
     Graphics.begin_tris();
     Graphics.bind_texture("dude.png");
-    Graphics.normal(0,0,1); Graphics.color(255,255,255,255);
-    Graphics.texcoord(0,0); Graphics.position(0,1,0);
-    Graphics.texcoord(1,0); Graphics.position(10,1,0);
-    Graphics.texcoord(1,1); Graphics.position(10,11,0);
+    
+    Graphics.box(8,8,8,0,16);
+
     Graphics.end();
     Graphics.pop();
 
