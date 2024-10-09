@@ -43,7 +43,7 @@ uniform mat4 u_modelview;
 uniform mat4 u_projection;
 
 void main(){
-    v_normal = u_modelview * vec4(a_normal,0.0);
+    v_normal = vec3(u_modelview * vec4(a_normal,0.0));
     v_texcoord = a_texcoord;
     v_color = a_color;
     gl_Position = u_projection * u_modelview * vec4(a_position,1.0);
@@ -148,6 +148,7 @@ export function bind_texture(name){
     var texture = textures.get(name);
     if (texture == undefined){
         texture = gl.createTexture();
+        
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // flip textures vertically
@@ -182,6 +183,8 @@ export function bind_texture(name){
         var image = new Image();
         
         image.onload = () => {
+            var old_texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(
                 gl.TEXTURE_2D,
@@ -198,6 +201,8 @@ export function bind_texture(name){
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             //gl.generateMipmap(gl.TEXTURE_2D);  // Create mipmaps; you must either
                                        // do this or change the minification filter.
+
+            gl.bindTexture(gl.TEXTURE_2D, old_texture);
         };
 
         image.src = "./textures/"+name;
@@ -245,9 +250,10 @@ export function use_direct(){
     gl.uniform1i(gl.getUniformLocation(shader, "u_sampler"), 0);
 }
 
-export function submit_direct_view_matrix(){
-    var lv0 = light_vec0.clone().transform_mat4_dir(Mat4Stack.get()).normalize();
-    var lv1 = light_vec1.clone().transform_mat4_dir(Mat4Stack.get()).normalize();
+export function submit_lights(){
+    var lv0 = light_vec0.clone().transform_mat4_dir(get()).normalize();
+    var lv1 = light_vec1.clone().transform_mat4_dir(get()).normalize();
+    console.log(light_vec0,light_vec1,lv0,lv1);
     gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec0"), lv0.x, lv0.y, lv0.z);
     gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec1"), lv1.x, lv1.y, lv1.z);
 }
@@ -305,8 +311,13 @@ export function position(x, y, z){
     vcount++;
 }
 
+var modelview = [Mat4.new_identity()];
+var projection = Mat4.new_identity();
+
 export function end(){
-    upload();
+    var shader = gl.getParameter(gl.CURRENT_PROGRAM);
+    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,get().to_array());
+    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection.to_array());
 
     gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
     gl.bufferSubData(gl.ARRAY_BUFFER,0,u8.subarray(0,vcount * vertex_size));
@@ -314,10 +325,7 @@ export function end(){
     gl.drawArrays(type,0,vcount);
 }
 
-var modelview = [Mat4.new_identity()];
-var projection = Mat4.new_identity();
-
-function get(){
+export function get(){
     return modelview[modelview.length-1];
 }
 
@@ -329,12 +337,6 @@ export function pop(){
     if (modelview.length > 1){
         modelview.pop();
     }
-}
-
-export function upload(){
-    var shader = gl.getParameter(gl.CURRENT_PROGRAM);
-    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,get().to_array());
-    gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection.to_array());
 }
 
 export function load_identity(){

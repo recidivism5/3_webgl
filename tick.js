@@ -1,11 +1,9 @@
 import {Player} from "./player.js"
 
-export class Tick {
-    static do(){
-        Player.tick();
-    }
+export function tick(){
+    Player.tick();
+}
 
-    static interpolate(t){
-        Player.interpolate(t);
-    }
+export function interpolate(t){
+    Player.interpolate(t);
 }

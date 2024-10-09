@@ -1,6 +1,6 @@
 import {BlockType} from "./blocktype.js"
 import {World} from "./world.js"
-import {Frame} from "./frame.js"
+import {main_loop} from "./mainloop.js"
 import {Input} from "./input.js"
 import * as Graphics from "./graphics.js"
 
@@ -15,7 +15,7 @@ async function main(){
 
     Input.init();
 
-    requestAnimationFrame(Frame.do);
+    requestAnimationFrame(main_loop);
 }
 
 main();

@@ -1,5 +1,6 @@
 import {Chunk} from "./chunk.js"
 import {Vec3} from "./vec3.js"
+import * as Graphics from "./graphics.js"
 
 export class World {
     static chunks = new Map();
@@ -14,6 +15,7 @@ export class World {
     }
     
     static draw(){
+        Graphics.use_color();
         World.chunks.forEach((chunk,key)=>{
             chunk.draw();
         });
