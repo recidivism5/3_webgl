@@ -59,7 +59,7 @@ export function main_loop(now){
             Graphics.end();
         Graphics.pop();
         Graphics.push();
-            Graphics.translate(-2,9,2);
+            Graphics.translate(-1.99,9,2);
             Graphics.rotate_x(Math.sin(-now*2) * 80);
             Graphics.translate(0,-9,-1);
             Graphics.begin_tris();
@@ -67,7 +67,7 @@ export function main_loop(now){
             Graphics.end();
         Graphics.pop();
         Graphics.push();
-            Graphics.translate(4,9,2);
+            Graphics.translate(3.99,9,2);
             Graphics.rotate_x(Math.sin(now*2) * 80);
             Graphics.translate(0,-9,-1);
             Graphics.begin_tris();
@@ -75,7 +75,7 @@ export function main_loop(now){
             Graphics.end();
         Graphics.pop();
         Graphics.push();
-            Graphics.translate(0,0,2);
+            Graphics.translate(0.01,0,2);
             Graphics.rotate_x(Math.sin(now*2) * 80);
             Graphics.translate(0,-9,-1);
             Graphics.begin_tris();
@@ -83,7 +83,7 @@ export function main_loop(now){
             Graphics.end();
         Graphics.pop();
         Graphics.push();
-            Graphics.translate(2,0,2);
+            Graphics.translate(1.99,0,2);
             Graphics.rotate_x(Math.sin(-now*2) * 80);
             Graphics.translate(0,-9,-1);
             Graphics.begin_tris();
