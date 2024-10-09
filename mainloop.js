@@ -43,17 +43,45 @@ export function main_loop(now){
 
     Graphics.use_direct();
     Graphics.submit_lights();
-    Graphics.push();
-    Graphics.translate(0,4,0);
-    Graphics.rotate_y(now*16);
-    Graphics.scale(1/16,1/16,1/16);
-    //Graphics.rotate_x(now*8);
-    Graphics.begin_tris();
     Graphics.bind_texture("dude.png");
-    
-    Graphics.box(8,8,8,0,16);
-
-    Graphics.end();
+    Graphics.push();
+        Graphics.translate(0,4,0);
+        Graphics.rotate_y(now*16);
+        Graphics.scale(1/16,1/16,1/16);
+        Graphics.translate(-2,-4.5,-2);
+        Graphics.begin_tris();
+        Graphics.box(4,9,4,0,3);
+        Graphics.end();
+        Graphics.push();
+            Graphics.translate(-2,9,-2);
+            Graphics.begin_tris();
+            Graphics.box(8,8,8,0,16);
+            Graphics.end();
+        Graphics.pop();
+        Graphics.push();
+            Graphics.translate(-2,0,1);
+            Graphics.begin_tris();
+            Graphics.box(2,9,2,16,5);
+            Graphics.end();
+        Graphics.pop();
+        Graphics.push();
+            Graphics.translate(4,0,1);
+            Graphics.begin_tris();
+            Graphics.box(2,9,2,16,5);
+            Graphics.end();
+        Graphics.pop();
+        Graphics.push();
+            Graphics.translate(0,-9,1);
+            Graphics.begin_tris();
+            Graphics.box(2,9,2,24,5);
+            Graphics.end();
+        Graphics.pop();
+        Graphics.push();
+            Graphics.translate(2,-9,1);
+            Graphics.begin_tris();
+            Graphics.box(2,9,2,24,5);
+            Graphics.end();
+        Graphics.pop();
     Graphics.pop();
 
     Graphics.use_color();

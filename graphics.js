@@ -43,7 +43,7 @@ uniform mat4 u_modelview;
 uniform mat4 u_projection;
 
 void main(){
-    v_normal = vec3(u_modelview * vec4(a_normal,0.0));
+    v_normal = normalize(vec3(u_modelview * vec4(a_normal,0.0)));
     v_texcoord = a_texcoord;
     v_color = a_color;
     gl_Position = u_projection * u_modelview * vec4(a_position,1.0);
@@ -77,7 +77,7 @@ void main(){
 			dot(v_normal,u_light_vec1)
 		) * (1.0 - u_ambient) + u_ambient
 	);
-	gl_FragColor = vec4(brightness * sample.rgb, sample.a);
+	gl_FragColor = vec4(brightness * sample.rgb * v_color.rgb, sample.a);
 }
 `
 
@@ -431,7 +431,7 @@ export function box(x, y, z, tx, ty){
 
     normal(0,1,0);
     l = coord(tx+x+n); r = coord(tx+2*x-n);
-    b = coord(ty+y+n); t = coord(ty+2*y-n);
+    b = coord(ty+y+n); t = coord(ty+y+z-n);
     texcoord(l,t); position(0,y,0);
     texcoord(l,b); position(0,y,z);
     texcoord(r,b); position(x,y,z);
