@@ -141,7 +141,7 @@ export class Entity {
                                 var plane = collider.planes[i];
                                 if (ray.dot(plane.normal) > 0) continue;
                                 var d0 = plane.distance_to(r0);
-                                if (d0 < 0) continue;
+                                if (d0 <= 0) continue;
                                 var d1 = plane.distance_to(r1);
                                 if (d1 > 0) continue;
                                 var nt = d0 / (d0 + Math.abs(d1));
