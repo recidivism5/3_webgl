@@ -1,9 +1,12 @@
 import {Chunk} from "./chunk.js"
 import {Vec3} from "./vec3.js"
 import * as Graphics from "./graphics.js"
+import { Dude } from "./dude.js";
 
 export class World {
     static chunks = new Map();
+
+    static dude;
 
     static init(){
         for (var z = -2; z <= 2; z++){
@@ -12,6 +15,8 @@ export class World {
                 World.chunks.set(chunk.get_key(), chunk);
             }
         }
+
+        World.dude = new Dude(0, 4, 0);
     }
     
     static draw(){
@@ -83,7 +88,7 @@ export class World {
         );
     }
 
-    set_block(x, y, z, id, color_id, light){
+    static set_block(x, y, z, id, color_id, light){
         var chunk = World.get_chunk_from_block_coords(x, z);
         if (chunk == undefined) return;
         return chunk.set_block(

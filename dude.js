@@ -3,7 +3,7 @@ import * as Graphics from "./graphics.js"
 
 export class Dude extends Entity{
     constructor(x, y, z){
-        super(x, y, z, 8/16, (9+9+8) / 16, false);
+        super(x, y, z, 8/16, (9+9+8) / 16, true);
     }
 
     draw(now){

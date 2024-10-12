@@ -22,6 +22,12 @@ export class Vec3 {
         return this;
     }
 
+    set(x, y, z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     get_component(index){
         switch (index){
             case 0: return this.x;
@@ -65,6 +71,13 @@ export class Vec3 {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
+        return this;
+    }
+
+    addc(x, y, z){
+        this.x += x;
+        this.y += y;
+        this.z += z;
         return this;
     }
 
@@ -144,6 +157,12 @@ export class Vec3 {
                Math.abs(this.z) <= EPSILON;
     }
 
+    set_zero(){
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+    }
+
     abs(){
         this.x = Math.abs(this.x);
         this.y = Math.abs(this.y);
@@ -191,6 +210,12 @@ export class Vec3 {
         this.y += (v.y - this.y) * t;
         this.z += (v.z - this.z) * t;
         return this;
+    }
+
+    project_onto_plane(normal){
+        var c = normal.clone();
+        c.scale(c.dot(this));
+        this.sub(c);
     }
 
     rotate_x(deg){

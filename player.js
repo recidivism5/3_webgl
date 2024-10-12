@@ -5,9 +5,13 @@ import {Raycast} from "./raycast.js"
 
 export class Player {
 
-    static humanoid = new Humanoid(4,4,4);
+    static humanoid;
 
     static raycast = null;
+
+    static init(){
+        Player.humanoid = new Humanoid(4,4,4);
+    }
 
     static tick(){
         var move = new Vec3(0,0,0);

@@ -42,9 +42,8 @@ export function main_loop(now){
 
     World.draw();
 
-    var dude = new Dude(0, 5, 0);
-    dude.draw(now);
-    dude.draw_wireframe();
+    World.dude.draw(now);
+    World.dude.draw_wireframe();
 
     if (Player.raycast){
         var pos = Player.raycast.position;

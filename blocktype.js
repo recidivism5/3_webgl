@@ -292,19 +292,22 @@ export class BlockType {
     }
 
     draw_wireframe(x, y, z){
-        Graphics.begin_lines();
-        Graphics.color(0,0,0,255);
-        this.unique_edges.forEach((edge)=>{
-            edge.forEach((pos_id)=>{
-                var pos = this.wire_positions[pos_id];
-                Graphics.position(
-                    x + pos.x,
-                    y + pos.y,
-                    z + pos.z
-                );
+        Graphics.push();
+            Graphics.translate(x, y, z);
+            Graphics.begin_lines();
+            Graphics.color(0,0,0,255);
+            this.unique_edges.forEach((edge)=>{
+                edge.forEach((pos_id)=>{
+                    var pos = this.wire_positions[pos_id];
+                    Graphics.position(
+                        pos.x,
+                        pos.y,
+                        pos.z
+                    );
+                });
             });
-        });
-        Graphics.end();
+            Graphics.end();
+        Graphics.pop();
     }
 
     static get_by_bitmap(bitmap){
