@@ -141,7 +141,7 @@ export class Entity {
                                 var plane = collider.planes[i];
                                 if (ray.dot(plane.normal) > 0) continue;
                                 var d0 = plane.distance_to(r0);
-                                if (d0 <= 0) continue;
+                                if (d0 < 0) continue;
                                 var d1 = plane.distance_to(r1);
                                 if (d1 > 0) continue;
                                 var nt = d0 / (d0 + Math.abs(d1));
@@ -177,7 +177,7 @@ export class Entity {
                     r3.scale(t);
                     this.current_position.add(r3);
                     r3.copy(hit_plane.normal);
-                    r3.scale(0.001);
+                    r3.scale(0.0001);
                     this.current_position.add(r3);
                     ray.scale(1 - t);
                     ray.project_onto_plane(hit_plane.normal);

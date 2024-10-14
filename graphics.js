@@ -389,6 +389,8 @@ function coord(v){
 }
 
 export function box(x, y, z, tx, ty){
+
+    begin_tris();
     
     var l, r, b, t;
 
@@ -449,4 +451,6 @@ export function box(x, y, z, tx, ty){
     texcoord(r,b); position(x,0,0);
     texcoord(r,t); position(x,0,z);
     texcoord(l,t); position(0,0,z);
+
+    end();
 }
