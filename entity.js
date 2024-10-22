@@ -122,6 +122,8 @@ export class Entity {
                 aabb.expand(ray);
                 aabb.min.floor();
                 aabb.max.floor();
+                aabb.min.sub(new Vec3(1,1,1));
+                aabb.max.add(new Vec3(1,1,1));
 
                 var t = 1.0;
                 var hit_plane = null;
