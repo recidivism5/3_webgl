@@ -198,10 +198,9 @@ export class Entity {
                             for (var i = 0; i < collider.type.expanded_faces.length; i++){
                                 var face = collider.type.expanded_faces[i];
                                 var plane = collider.planes[i];
-                                if (ray.dot(plane.normal) > 0) continue;
                                 var d0 = plane.distance_to(r0);
-                                if (d0 < 0) continue;
-                                if (d0 > 0.0001) continue;
+                                if (d0 < -nudge) continue;
+                                if (d0 > nudge) continue;
                                 var on = true;
                                 for (var j = 0; j < face.length; j++){
                                     var k = (j + 1) % face.length;
@@ -224,7 +223,7 @@ export class Entity {
                                     r1.scale(0.5);
                                     r1.add(hit_normal);
                                     r1.normalize();
-                                    r1.scale(4 * nudge);
+                                    r1.scale(2 * nudge);
                                     this.current_position.add(r1);
                                     x = aabb.max.x + 1; //break out of block iteration
                                     y = aabb.max.y + 1;
