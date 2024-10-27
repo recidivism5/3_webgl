@@ -134,7 +134,7 @@ export class Entity {
             aabb.max.z++;
 
             var t = 1.0;
-            var hit_plane = null;
+            var hit_normal = null;
 
             for (var y = aabb.min.y; y <= aabb.max.y; y++){
                 for (var z = aabb.min.z; z <= aabb.max.z; z++){
@@ -175,7 +175,7 @@ export class Entity {
                             }
                             if (on && nt < t){
                                 t = nt;
-                                hit_plane = plane;
+                                hit_normal = plane.normal;
                             }
                         }
                     }
@@ -185,14 +185,15 @@ export class Entity {
             if (t < 1){
                 r3.copy(ray);
                 r3.scale(t);
-                r3.add(this.current_position);
+                this.current_position.add(r3);
+                const nudge = 0.00001;
                 for (var y = aabb.min.y; y <= aabb.max.y; y++){
                     for (var z = aabb.min.z; z <= aabb.max.z; z++){
                         for (var x = aabb.min.x; x <= aabb.max.x; x++){
                             var block_id = World.get_block_id(x,y,z);
                             if (block_id <= 0 || block_id >= BlockType.types.length) continue;
                             var collider = this.colliders[block_id];
-                            r0.copy(r3);
+                            r0.copy(this.current_position);
                             r0.subc(x, y, z);
                             for (var i = 0; i < collider.type.expanded_faces.length; i++){
                                 var face = collider.type.expanded_faces[i];
@@ -216,65 +217,30 @@ export class Entity {
                                         break;
                                     }
                                 }
-                                if (on && plane.normal.dot(hit_plane.normal) < 0){
+                                if (on && plane.normal.dot(hit_normal) < 0){
                                     //angle with hitplane is acute (normals are obtuse to eachother)
-                                    r1.copy(hit_plane.normal);
-                                    r1.cross(plane.normal);
-                                    r1.cross(hit_plane.normal);
-                                    r1.negate(); // right hand rule tells us we need to negate to get the
-                                                 // vector towards the line of intersection between the
-                                                 // two planes.
-                                    a.copy(r0);
-                                    a.add(r1);
-                                    d0 = plane.distance_to(r0);
-                                    d1 = plane.distance_to(a);
-                                    if (d0 >= 0 && d1 <= 0){
-                                        var nt = d0 / (d0 + Math.abs(d1));
-                                        a.copy(r1);
-                                        a.scale(nt);
-                                        a.add(r0);
-                                        a.addc(x, y, z);
-                                        // a is now a world-space point on the intersection between the planes
-                                        // get middle vector
-                                        r1.copy(plane.normal);
-                                        r1.sub(hit_plane.normal);
-                                        r1.scale(0.5);
-                                        r1.add(hit_plane.normal);
-                                        r1.normalize();
-                                        if (ray.dot(r1) > 0) continue;
-                                        var corner_plane = new Plane(r1, r1.dot(a) + 0.001); // nudge plane forward
-                                        //recast ray against corner plane
-                                        r0.copy(this.current_position);
-                                        r0.add(ray);
-                                        d0 = corner_plane.distance_to(this.current_position);
-                                        if (d0 < 0) continue;
-                                        d1 = corner_plane.distance_to(r0);
-                                        if (d1 > 0) continue;
-                                        var nt = d0 / (d0 + Math.abs(d1));
-                                        if (nt >= 0 && nt <= t){
-                                            t = nt;
-                                            hit_plane = corner_plane;
-                                            r3.copy(ray);
-                                            r3.scale(t);
-                                            r3.add(this.current_position);
-                                            x = aabb.max.x + 1; //break out of block iteration
-                                            y = aabb.max.y + 1;
-                                            z = aabb.max.z + 1;
-                                            break;
-                                        }
-                                    }
+                                    r1.copy(plane.normal);
+                                    r1.sub(hit_normal);
+                                    r1.scale(0.5);
+                                    r1.add(hit_normal);
+                                    r1.normalize();
+                                    r1.scale(4 * nudge);
+                                    this.current_position.add(r1);
+                                    x = aabb.max.x + 1; //break out of block iteration
+                                    y = aabb.max.y + 1;
+                                    z = aabb.max.z + 1;
+                                    break;
                                 }
                             }
                         }
                     }
                 }
-                this.current_position.copy(r3);
-                r3.copy(hit_plane.normal);
-                r3.scale(0.00001);
+                r3.copy(hit_normal);
+                r3.scale(nudge);
                 this.current_position.add(r3);
                 ray.scale(1 - t);
-                ray.project_onto_plane(hit_plane.normal);
-                this.velocity.project_onto_plane(hit_plane.normal);
+                ray.project_onto_plane(hit_normal);
+                this.velocity.project_onto_plane(hit_normal);
             } else {
                 this.current_position.add(ray);
                 ray.set_zero();
