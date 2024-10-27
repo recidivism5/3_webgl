@@ -100,56 +100,107 @@ export class Entity {
 
         this.previous_position.copy(this.current_position);        
 
-        if (this.physics_enabled){
-            this.velocity.y -= 0.04;
+        if (!this.physics_enabled){
+            this.current_position.add(this.velocity);
+            return;
+        }
 
-            var ray = this.velocity.clone();
+        this.velocity.y -= 0.04;
 
-            var r0 = new Vec3(0,0,0);
-            var r1 = new Vec3(0,0,0);
-            var r3 = new Vec3(0,0,0);
+        var ray = this.velocity.clone();
 
-            var a = new Vec3(0,0,0);
-            var b = new Vec3(0,0,0);
+        var r0 = new Vec3();
+        var r1 = new Vec3();
+        var r3 = new Vec3();
 
-            while (!ray.is_zero()){
-            
-                var aabb = new AABB(
-                    this.previous_position.clone().sub(this.half_extents),
-                    this.previous_position.clone().add(this.half_extents)
-                );
+        var a = new Vec3();
+        var b = new Vec3();
 
-                aabb.expand(ray);
-                aabb.min.floor();
-                aabb.max.floor();
-                aabb.min.sub(new Vec3(1,1,1));
-                aabb.max.add(new Vec3(1,1,1));
+        while (!ray.is_zero()){
+        
+            var aabb = new AABB(
+                this.previous_position.clone().sub(this.half_extents),
+                this.previous_position.clone().add(this.half_extents)
+            );
 
-                var t = 1.0;
-                var hit_plane = null;
+            aabb.expand(ray);
+            aabb.min.floor();
+            aabb.max.floor();
+            aabb.min.x--;
+            aabb.min.y--;
+            aabb.min.z--;
+            aabb.max.x++;
+            aabb.max.y++;
+            aabb.max.z++;
 
+            var t = 1.0;
+            var hit_plane = null;
+
+            for (var y = aabb.min.y; y <= aabb.max.y; y++){
+                for (var z = aabb.min.z; z <= aabb.max.z; z++){
+                    for (var x = aabb.min.x; x <= aabb.max.x; x++){
+                        var block_id = World.get_block_id(x,y,z);
+                        if (block_id <= 0 || block_id >= BlockType.types.length) continue;
+                        var collider = this.colliders[block_id];
+                        r0.copy(this.current_position);
+                        r0.subc(x, y, z);
+                        r1.copy(r0);
+                        r1.add(ray);
+                        for (var i = 0; i < collider.type.expanded_faces.length; i++){
+                            var face = collider.type.expanded_faces[i];
+                            var plane = collider.planes[i];
+                            if (ray.dot(plane.normal) > 0) continue;
+                            var d0 = plane.distance_to(r0);
+                            if (d0 < 0) continue;
+                            var d1 = plane.distance_to(r1);
+                            if (d1 > 0) continue;
+                            var nt = d0 / (d0 + Math.abs(d1));
+                            r3.copy(ray);
+                            r3.scale(nt);
+                            r3.add(r0);
+                            var on = true;
+                            for (var j = 0; j < face.length; j++){
+                                var k = (j + 1) % face.length;
+                                var p0 = collider.positions[face[j]];
+                                var p1 = collider.positions[face[k]];
+                                a.copy(p1);
+                                a.sub(p0);
+                                b.copy(r3);
+                                b.sub(p0);
+                                a.cross(b);
+                                if (a.dot(plane.normal) < 0){
+                                    on = false;
+                                    break;
+                                }
+                            }
+                            if (on && nt < t){
+                                t = nt;
+                                hit_plane = plane;
+                            }
+                        }
+                    }
+                }
+            }
+            if (t < 0) break;
+            if (t < 1){
+                r3.copy(ray);
+                r3.scale(t);
+                r3.add(this.current_position);
                 for (var y = aabb.min.y; y <= aabb.max.y; y++){
                     for (var z = aabb.min.z; z <= aabb.max.z; z++){
                         for (var x = aabb.min.x; x <= aabb.max.x; x++){
                             var block_id = World.get_block_id(x,y,z);
                             if (block_id <= 0 || block_id >= BlockType.types.length) continue;
                             var collider = this.colliders[block_id];
-                            r0.set(-x, -y, -z);
-                            r0.add(this.current_position);
-                            r1.copy(r0);
-                            r1.add(ray);
+                            r0.copy(r3);
+                            r0.subc(x, y, z);
                             for (var i = 0; i < collider.type.expanded_faces.length; i++){
                                 var face = collider.type.expanded_faces[i];
                                 var plane = collider.planes[i];
                                 if (ray.dot(plane.normal) > 0) continue;
                                 var d0 = plane.distance_to(r0);
                                 if (d0 < 0) continue;
-                                var d1 = plane.distance_to(r1);
-                                if (d1 > 0) continue;
-                                var nt = d0 / (d0 + Math.abs(d1));
-                                r3.copy(ray);
-                                r3.scale(nt);
-                                r3.add(r0);
+                                if (d0 > 0.0001) continue;
                                 var on = true;
                                 for (var j = 0; j < face.length; j++){
                                     var k = (j + 1) % face.length;
@@ -157,7 +208,7 @@ export class Entity {
                                     var p1 = collider.positions[face[k]];
                                     a.copy(p1);
                                     a.sub(p0);
-                                    b.copy(r3);
+                                    b.copy(r0);
                                     b.sub(p0);
                                     a.cross(b);
                                     if (a.dot(plane.normal) < 0){
@@ -165,32 +216,69 @@ export class Entity {
                                         break;
                                     }
                                 }
-                                if (on && nt < t){
-                                    t = nt;
-                                    hit_plane = plane;
+                                if (on && plane.normal.dot(hit_plane.normal) < 0){
+                                    //angle with hitplane is acute (normals are obtuse to eachother)
+                                    r1.copy(hit_plane.normal);
+                                    r1.cross(plane.normal);
+                                    r1.cross(hit_plane.normal);
+                                    r1.negate(); // right hand rule tells us we need to negate to get the
+                                                 // vector towards the line of intersection between the
+                                                 // two planes.
+                                    a.copy(r0);
+                                    a.add(r1);
+                                    d0 = plane.distance_to(r0);
+                                    d1 = plane.distance_to(a);
+                                    if (d0 >= 0 && d1 <= 0){
+                                        var nt = d0 / (d0 + Math.abs(d1));
+                                        a.copy(r1);
+                                        a.scale(nt);
+                                        a.add(r0);
+                                        a.addc(x, y, z);
+                                        // a is now a world-space point on the intersection between the planes
+                                        // get middle vector
+                                        r1.copy(plane.normal);
+                                        r1.sub(hit_plane.normal);
+                                        r1.scale(0.5);
+                                        r1.add(hit_plane.normal);
+                                        r1.normalize();
+                                        if (ray.dot(r1) > 0) continue;
+                                        var corner_plane = new Plane(r1, r1.dot(a) + 0.001); // nudge plane forward
+                                        //recast ray against corner plane
+                                        r0.copy(this.current_position);
+                                        r0.add(ray);
+                                        d0 = corner_plane.distance_to(this.current_position);
+                                        if (d0 < 0) continue;
+                                        d1 = corner_plane.distance_to(r0);
+                                        if (d1 > 0) continue;
+                                        var nt = d0 / (d0 + Math.abs(d1));
+                                        if (nt >= 0 && nt <= t){
+                                            t = nt;
+                                            hit_plane = corner_plane;
+                                            r3.copy(ray);
+                                            r3.scale(t);
+                                            r3.add(this.current_position);
+                                            x = aabb.max.x + 1; //break out of block iteration
+                                            y = aabb.max.y + 1;
+                                            z = aabb.max.z + 1;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                if (t < 0) break;
-                if (t < 1){
-                    r3.copy(ray);
-                    r3.scale(t);
-                    this.current_position.add(r3);
-                    r3.copy(hit_plane.normal);
-                    r3.scale(0.0001);
-                    this.current_position.add(r3);
-                    ray.scale(1 - t);
-                    ray.project_onto_plane(hit_plane.normal);
-                    this.velocity.project_onto_plane(hit_plane.normal);
-                } else {
-                    this.current_position.add(ray);
-                    ray.set_zero();
-                }
+                this.current_position.copy(r3);
+                r3.copy(hit_plane.normal);
+                r3.scale(0.00001);
+                this.current_position.add(r3);
+                ray.scale(1 - t);
+                ray.project_onto_plane(hit_plane.normal);
+                this.velocity.project_onto_plane(hit_plane.normal);
+            } else {
+                this.current_position.add(ray);
+                ray.set_zero();
             }
-        } else {
-            this.current_position.add(this.velocity);
         }
     }
 
