@@ -223,7 +223,7 @@ export class Entity {
                                     r1.scale(0.5);
                                     r1.add(hit_normal);
                                     r1.normalize();
-                                    r1.scale(2 * nudge);
+                                    r1.scale(4 * nudge);
                                     this.current_position.add(r1);
                                     x = aabb.max.x + 1; //break out of block iteration
                                     y = aabb.max.y + 1;

@@ -14,10 +14,14 @@ async function main(){
 
     World.init();
 
-    World.set_block(0,1,0,2,4,0);
-    World.set_block(0,1,-1,2,4,0);
+    World.set_block(0,1,0, 2,4,0);
+    World.set_block(0,1,-1, 2,4,0);
+    World.set_block(-2,1,0, 4,4,0);
+    World.set_block(-2,1,-1, 4,4,0);
     World.set_block(3,1,2, 6,4,0);
     World.set_block(4,1,2, 6,4,0);
+    World.set_block(5,1,3, 2,4,0);
+    World.set_block(6,1,3, 2,4,0);
 
     Player.init();
 
