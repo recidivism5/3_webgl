@@ -1,0 +1,8 @@
+so we want AO on the block faces
+We essentially need like face vertices, not half edges
+face vertices and not vertices -- there are cases where
+faces containing the same vertex need different AO values
+for that vertex. It seems every face vertex will need to check 2 adjacent blocks.
+
+Anyways though we actually have to fix T junctions introduced
+by clipping first.

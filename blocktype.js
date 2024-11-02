@@ -463,15 +463,55 @@ export class BlockType {
             ]
         );
 
-        /*
-        gen([ // 45 corner
-            [0,0,0],
-            [0,0,2],
-            [2,0,2],
-            [0,2,2],
-        ]);
+        BlockType.gen(
+            [ // 45 corner
+                new Vec3(0,2,0),
+                new Vec3(0,0,0),
+                new Vec3(0,0,2),
+                new Vec3(2,0,0),
+            ],
+            [
+                [0,1,2],
+                [0,3,1],
+                [2,1,3],
+                [0,2,3]
+            ],
+            [
+                new ExpandedPosition(0, new Vec3(-1,+1,-1)),
+                new ExpandedPosition(0, new Vec3(-1,+1,+1)),
+                new ExpandedPosition(0, new Vec3(+1,+1,+1)),
+                new ExpandedPosition(0, new Vec3(+1,+1,-1)),
 
-        gen([ // low wedge
+                new ExpandedPosition(2, new Vec3(-1,+1,+1)),
+                new ExpandedPosition(2, new Vec3(-1,-1,+1)),
+                new ExpandedPosition(2, new Vec3(+1,-1,+1)),
+                new ExpandedPosition(2, new Vec3(+1,+1,+1)),
+
+                new ExpandedPosition(3, new Vec3(+1,+1,+1)),
+                new ExpandedPosition(3, new Vec3(+1,-1,+1)),
+                new ExpandedPosition(3, new Vec3(+1,-1,-1)),
+                new ExpandedPosition(3, new Vec3(+1,+1,-1)),
+
+                new ExpandedPosition(1, new Vec3(-1,-1,-1)),
+            ],
+            [
+                [0,1,2,3],
+                [4,5,6,7],
+                [8,9,10,11],
+
+                [1,4,7,2],
+                [6,9,8,7],
+                [2,8,11,3],
+
+                [2,7,8],
+
+                [0,12,5,4,1],
+                [3,11,10,12,0],
+                [5,12,10,9,6],
+            ]
+        );
+
+        /*gen([ // low wedge
             [0,0,0],
             [2,0,0],
             [0,0,2],
