@@ -64,26 +64,24 @@ export class Gui {
 
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.DEPTH_BUFFER_BIT);
+        const block_size = 35;
+        const total_width = BlockType.types.length * block_size;
         BlockType.types.forEach((type, index)=>{
-            const block_size = 50;
-            const total_width = BlockType.types.length * block_size;
             var x = center_x - total_width/2 + block_size/2 + index * block_size;
             var y = 100;
 
             Graphics.begin_tris();
             if (index == Input.selected_block_id.get()){
                 Graphics.color(255,0,0,255);
-                hollow_rect_centered(x,y,1,56,56,6);
+                hollow_rect_centered(x,y,1,block_size+6,block_size+6,6);
             } else {
                 Graphics.color(0,0,0,255);
-                hollow_rect_centered(x,y,0,54,54,4);
+                hollow_rect_centered(x,y,0,block_size+4,block_size+4,4);
             }
             Graphics.end();
         });
 
         BlockType.types.forEach((type, index)=>{
-            const block_size = 50;
-            const total_width = BlockType.types.length * block_size;
             var x = center_x - total_width/2 + block_size/2 + index * block_size;
             var y = 100;
 
