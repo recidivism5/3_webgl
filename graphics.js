@@ -384,10 +384,6 @@ export function project_identity(){
     projection.set_identity();
 }
 
-function coord(v){
-    return v / bound_texture_res;
-}
-
 export function box(x, y, z, tx, ty){
 
     begin_tris();
@@ -396,9 +392,11 @@ export function box(x, y, z, tx, ty){
 
     const n = 0.01;
 
+    const invres = 1 / bound_texture_res;
+
     normal(-1,0,0);
-    l = coord(tx+n); r = coord(tx+x-n);
-    b = coord(ty+n); t = coord(ty+y-n);
+    l = invres*(tx+n); r = invres*(tx+x-n);
+    b = invres*(ty+n); t = invres*(ty+y-n);
     texcoord(l,t); position(0,y,0);
     texcoord(l,b); position(0,0,0);
     texcoord(r,b); position(0,0,z);
@@ -407,7 +405,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,0);
 
     normal(0,0,1);
-    l = coord(tx+x+n); r = coord(tx+2*x-n);
+    l = invres*(tx+x+n); r = invres*(tx+2*x-n);
     texcoord(l,t); position(0,y,z);
     texcoord(l,b); position(0,0,z);
     texcoord(r,b); position(x,0,z);
@@ -416,7 +414,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,z);
 
     normal(1,0,0);
-    l = coord(tx+2*x+n); r = coord(tx+3*x-n);
+    l = invres*(tx+2*x+n); r = invres*(tx+3*x-n);
     texcoord(l,t); position(x,y,z);
     texcoord(l,b); position(x,0,z);
     texcoord(r,b); position(x,0,0);
@@ -425,7 +423,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(x,y,z);
 
     normal(0,0,-1);
-    l = coord(tx+3*x+n); r = coord(tx+4*x-n);
+    l = invres*(tx+3*x+n); r = invres*(tx+4*x-n);
     texcoord(l,t); position(x,y,0);
     texcoord(l,b); position(x,0,0);
     texcoord(r,b); position(0,0,0);
@@ -434,8 +432,8 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(x,y,0);
 
     normal(0,1,0);
-    l = coord(tx+x+n); r = coord(tx+2*x-n);
-    b = coord(ty+y+n); t = coord(ty+y+z-n);
+    l = invres*(tx+x+n); r = invres*(tx+2*x-n);
+    b = invres*(ty+y+n); t = invres*(ty+y+z-n);
     texcoord(l,t); position(0,y,0);
     texcoord(l,b); position(0,y,z);
     texcoord(r,b); position(x,y,z);
@@ -444,7 +442,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,0);
 
     normal(0,-1,0);
-    l = coord(tx+2*x+n); r = coord(tx+3*x-n);
+    l = invres*(tx+2*x+n); r = invres*(tx+3*x-n);
     texcoord(l,t); position(0,0,z);
     texcoord(l,b); position(0,0,0);
     texcoord(r,b); position(x,0,0);

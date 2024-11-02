@@ -511,15 +511,53 @@ export class BlockType {
             ]
         );
 
-        /*gen([ // low wedge
-            [0,0,0],
-            [2,0,0],
-            [0,0,2],
-            [2,0,2],
-            [2,1,2],
-            [0,1,2],
-        ]);
+        BlockType.gen(
+            [ // low wedge
+                new Vec3(0,0,0),
+                new Vec3(2,0,0),
+                new Vec3(2,1,0),
 
+                new Vec3(0,0,2),
+                new Vec3(2,0,2),
+                new Vec3(2,1,2),
+            ],
+            [
+                [2,1,0],
+                [3,4,5],
+                
+                [3,0,1,4],
+                [5,4,1,2],
+
+                [0,3,5,2]
+            ],
+            [
+                new ExpandedPosition(0, new Vec3(-1,+1,-1)),
+                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+                new ExpandedPosition(3, new Vec3(-1,-1,+1)),
+                new ExpandedPosition(3, new Vec3(-1,+1,+1)),
+
+                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+                new ExpandedPosition(2, new Vec3(-1,+1,-1)),
+                new ExpandedPosition(5, new Vec3(-1,+1,+1)),
+                new ExpandedPosition(5, new Vec3(+1,+1,+1)),
+
+                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+                new ExpandedPosition(4, new Vec3(+1,-1,+1))
+            ],
+            [
+                [0,1,2,3],
+                [4,5,6,7],
+
+                [0,3,6,5],
+
+                [4,8,1,0,5],
+                [3,2,9,7,6],
+
+                [2,1,8,9],
+                [7,9,8,4]
+            ]
+        );
+        /*
         gen([ // high wedge
             [0,0,0],
             [2,0,0],

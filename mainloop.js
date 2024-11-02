@@ -18,6 +18,7 @@ export function main_loop(now){
         before = now;
     }
     accumulated_time += now - before;
+    accumulated_time = Math.min(accumulated_time, 1);
     before = now;
     while (accumulated_time >= SEC_PER_TICK){
         accumulated_time -= SEC_PER_TICK;
