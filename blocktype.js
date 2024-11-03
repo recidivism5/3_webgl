@@ -171,7 +171,10 @@ export class BlockType {
             if (
                 (ip.x != jp.x && ip.y != jp.y) ||
                 (ip.x != jp.x && ip.z != jp.z) ||
-                (ip.y != jp.y && ip.z != jp.z)
+                (ip.y != jp.y && ip.z != jp.z) ||
+                (ip.x != 0 && ip.x != 1 && jp.x != 0 && jp.x != 1) ||
+                (ip.y != 0 && ip.y != 1 && jp.y != 0 && jp.y != 1) ||
+                (ip.z != 0 && ip.z != 1 && jp.z != 0 && jp.z != 1)
             ){
                 b0 = ip;
                 b1 = jp;
