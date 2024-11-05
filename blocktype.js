@@ -419,6 +419,47 @@ export class BlockType {
             ]
         );
 
+        BlockType.gen( // cube
+            [ //positions
+                new Vec3(0,0,0),
+                new Vec3(2,0,0),
+                new Vec3(2,1,0),
+                new Vec3(0,1,0),
+
+                new Vec3(0,0,2),
+                new Vec3(2,0,2),
+                new Vec3(2,1,2),
+                new Vec3(0,1,2),
+            ],
+            [ //faces
+                [2,1,0,3],
+                [7,4,5,6],
+                [4,0,1,5],
+                [3,7,6,2],
+                [3,0,4,7],
+                [6,5,1,2],
+            ],
+            [ //expanded positions
+                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+                new ExpandedPosition(3, new Vec3(-1,+1,-1)),
+
+                new ExpandedPosition(4, new Vec3(-1,-1,+1)),
+                new ExpandedPosition(5, new Vec3(+1,-1,+1)),
+                new ExpandedPosition(6, new Vec3(+1,+1,+1)),
+                new ExpandedPosition(7, new Vec3(-1,+1,+1)),
+            ],
+            [ //expanded faces
+                [2,1,0,3],
+                [7,4,5,6],
+                [4,0,1,5],
+                [3,7,6,2],
+                [3,0,4,7],
+                [6,5,1,2],
+            ]
+        );
+
         BlockType.gen(
             [ // 45 wedge
                 new Vec3(0,0,0),

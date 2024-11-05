@@ -23,7 +23,7 @@ export class Player {
         }
         if (!move.is_zero()){
             move.normalize();
-            move.scale(0.5);
+            move.scale(0.4);
             if (!this.humanoid.entity.physics_enabled){
                 move.rotate_x(this.humanoid.head_rotation_x);
             }

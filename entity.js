@@ -105,7 +105,7 @@ export class Entity {
             return;
         }
 
-        this.velocity.y -= 0.04;
+        this.velocity.y -= 0.06;
 
         var ray = this.velocity.clone();
 
