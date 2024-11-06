@@ -65,7 +65,7 @@ export class Gui {
 
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.DEPTH_BUFFER_BIT);
-        const block_size = 35;
+        const block_size = 50;
         const total_width = BlockType.base_type_ids.length * block_size;
         BlockType.base_type_ids.forEach((type, index)=>{
             var x = center_x - total_width/2 + block_size/2 + index * block_size;

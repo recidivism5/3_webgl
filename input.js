@@ -18,6 +18,10 @@ export class Input {
 
     static color_mod = false;
 
+    static get_selected_block_id(){
+        return BlockType.base_type_ids[Input.selected_block_base_id.get()] + Input.rotations[Input.selected_block_base_id.get()].get();
+    }
+
     static mousemove(event){
         if (document.pointerLockElement != null){
             Player.humanoid.head_rotation_x -= Input.mouse_sensitivity * event.movementY;
@@ -43,7 +47,7 @@ export class Input {
                         pos.x + normal.x,
                         pos.y + normal.y,
                         pos.z + normal.z,
-                        Input.selected_block_base_id.get()
+                        Input.get_selected_block_id()
                     );
                     World.set_block_color_id(
                         pos.x + normal.x,
