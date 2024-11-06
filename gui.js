@@ -4,6 +4,7 @@ import {Color} from "./color.js"
 import {BlockType} from "./blocktype.js"
 import {Palette} from "./palette.js"
 import {Input} from "./input.js";
+import { Block } from "./block.js";
 
 function rect(x, y, z, width, height){
     Graphics.position(x, y+height, z);
@@ -65,13 +66,13 @@ export class Gui {
         gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.DEPTH_BUFFER_BIT);
         const block_size = 35;
-        const total_width = BlockType.types.length * block_size;
-        BlockType.types.forEach((type, index)=>{
+        const total_width = BlockType.base_type_ids.length * block_size;
+        BlockType.base_type_ids.forEach((type, index)=>{
             var x = center_x - total_width/2 + block_size/2 + index * block_size;
             var y = 100;
 
             Graphics.begin_tris();
-            if (index == Input.selected_block_id.get()){
+            if (index == Input.selected_block_base_id.get()){
                 Graphics.color(255,0,0,255);
                 hollow_rect_centered(x,y,1,block_size+6,block_size+6,6);
             } else {
@@ -81,9 +82,11 @@ export class Gui {
             Graphics.end();
         });
 
-        BlockType.types.forEach((type, index)=>{
+        BlockType.base_type_ids.forEach((id, index)=>{
             var x = center_x - total_width/2 + block_size/2 + index * block_size;
             var y = 100;
+
+            var type = BlockType.types[id];
 
             Graphics.push();
             Graphics.translate(x,y,0);

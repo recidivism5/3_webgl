@@ -21,7 +21,7 @@ class ExpandedPosition {
 }
 
 export class BlockType {
-    static base_types = [];
+    static base_type_ids = [];
     static types = [];
     static bitmap_to_type = new Map();
 
@@ -256,7 +256,7 @@ export class BlockType {
             brightness * color.r,
             brightness * color.g,
             brightness * color.b,
-            255
+            color.a
         );
         face.forEach((position, index)=>{
             Graphics.position(
@@ -361,8 +361,8 @@ export class BlockType {
                         expanded_faces
                     );
                     if (x == 0 && y == 0 && z == 0){
-                        BlockType.base_types.push(
-                            BlockType.types[BlockType.types.length-1]
+                        BlockType.base_type_ids.push(
+                            BlockType.types.length-1
                         );
                     }
                 }
@@ -377,6 +377,10 @@ export class BlockType {
         });
 
         BlockType.push_type([],0,[],[],[]); // air
+
+        BlockType.base_type_ids.push(
+            BlockType.types.length-1
+        );
 
         BlockType.gen( // cube
             [ //positions

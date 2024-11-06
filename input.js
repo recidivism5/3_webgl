@@ -12,8 +12,9 @@ export class Input {
     static forward = false;
     static backward = false;
 
-    static selected_block_id = null;
+    static selected_block_base_id = null;
     static selected_block_color_id = null;
+    static rotations = [];
 
     static color_mod = false;
 
@@ -42,7 +43,7 @@ export class Input {
                         pos.x + normal.x,
                         pos.y + normal.y,
                         pos.z + normal.z,
-                        Input.selected_block_id.get()
+                        Input.selected_block_base_id.get()
                     );
                     World.set_block_color_id(
                         pos.x + normal.x,
@@ -60,7 +61,7 @@ export class Input {
         if (Input.color_mod){
             Input.selected_block_color_id.add(inc);
         } else {
-            Input.selected_block_id.add(inc);
+            Input.selected_block_base_id.add(inc);
         }
     }
 
@@ -73,6 +74,16 @@ export class Input {
             //case "KeyF": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
             case "KeyC": Input.color_mod = true; break;
             case "Space": Player.humanoid.entity.velocity.y = 0.45; break;
+            case "KeyR": Input.rotations[Input.selected_block_base_id.get()].add(1); break;
+            case "KeyF": Input.rotations[Input.selected_block_base_id.get()].add(-1); break;
+            case "KeyQ": Input.selected_block_color_id.add(1); break;
+            case "KeyE": Input.selected_block_color_id.add(-1); break;
+            case "Digit1": Input.selected_block_base_id.set(0); break;
+            case "Digit2": Input.selected_block_base_id.set(1); break;
+            case "Digit3": Input.selected_block_base_id.set(2); break;
+            case "Digit4": Input.selected_block_base_id.set(3); break;
+            case "Digit5": Input.selected_block_base_id.set(4); break;
+            case "Digit6": Input.selected_block_base_id.set(5); break;
         }
     }
     
@@ -98,7 +109,21 @@ export class Input {
         document.addEventListener("keydown",Input.keydown);
         document.addEventListener("keyup",Input.keyup);
 
-        Input.selected_block_id = new RingValue(BlockType.types.length,0);
+        Input.selected_block_base_id = new RingValue(BlockType.base_type_ids.length,0);
         Input.selected_block_color_id = new RingValue(Palette.colors.length,0);
+        for (var i = 0; i < BlockType.base_type_ids.length-1; i++){
+            Input.rotations.push(
+                new RingValue(
+                    BlockType.base_type_ids[i+1] - BlockType.base_type_ids[i],
+                    0
+                )
+            );
+        }
+        Input.rotations.push(
+            new RingValue(
+                BlockType.types.length - BlockType.base_type_ids[i],
+                0
+            )
+        );
     }
 }

@@ -6,6 +6,8 @@ import {BlockType} from "./blocktype.js"
 import * as Graphics from "./graphics.js"
 import {gl, canvas} from "./graphics.js"
 import {Dude} from "./dude.js"
+import { Input } from "./input.js"
+import { Palette } from "./palette.js"
 
 var before = -1.0;
 var accumulated_time = 0.0;
@@ -37,6 +39,9 @@ export function main_loop(now){
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
 
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     Player.update_raycast();
 
     Player.use_camera();
@@ -47,10 +52,17 @@ export function main_loop(now){
     World.dude.draw_wireframe();
 
     if (Player.raycast){
-        var pos = Player.raycast.position;
-        var block_id = World.get_block_id(pos.x, pos.y, pos.z);
-        var block_type = BlockType.get(block_id);
-        block_type.draw_wireframe(pos.x, pos.y, pos.z);
+        var pos = Player.raycast.position.clone();
+        pos.add(Player.raycast.normal);
+        var block_type = BlockType.get(BlockType.base_type_ids[Input.selected_block_base_id.get()] + Input.rotations[Input.selected_block_base_id.get()].get());
+        var color = Palette.get(Input.selected_block_color_id.get()).clone();
+        color.a = 127;
+        Graphics.push();
+            Graphics.translate(pos.x, pos.y, pos.z);
+            Graphics.begin_tris();
+            block_type.draw(color);
+            Graphics.end();
+        Graphics.pop();
     }
 
     Gui.draw();
