@@ -1,5 +1,5 @@
 import {Player} from "./player.js"
-import {BlockType} from "./blocktype.js"
+import * as BlockType from "./blocktype.js"
 import {World} from "./world.js"
 import {Palette} from "./palette.js";
 import { RingValue } from "./ringvalue.js";

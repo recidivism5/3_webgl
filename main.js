@@ -1,4 +1,4 @@
-import {BlockType} from "./blocktype.js"
+import * as BlockType from "./blocktype.js"
 import {World} from "./world.js"
 import {main_loop} from "./mainloop.js"
 import {Input} from "./input.js"

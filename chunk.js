@@ -1,5 +1,5 @@
 import {World} from "./world.js"
-import {BlockType} from "./blocktype.js"
+import * as BlockType from "./blocktype.js"
 import * as Graphics from "./graphics.js"
 import {Palette} from "./palette.js"
 import {Vec3} from "./vec3.js"

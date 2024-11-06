@@ -20,30 +20,53 @@ class ExpandedPosition {
     }
 }
 
+export var base_type_ids = [];
+export var types = [];
+var bitmap_to_type = new Map();
+
+function get_brightness(normal){
+    return Math.min(1,Math.max(
+        0,
+        normal.dot(Graphics.light_vec0),
+        normal.dot(Graphics.light_vec1)
+    )*(1-Graphics.ambient) + Graphics.ambient);
+}
+
+var border_brightnesses = [];
+
+export function get_random_id(){
+    return random.rand_int(types.length);
+}
+
+function triangulate(face){
+    if (face == null) return null;
+    switch (face.length){
+        case 3: return face;
+        case 4: return [face[0],face[1],face[2], face[2],face[3],face[0]];
+        default: return null;
+    }
+}
+
+export function iterate_borders(func){
+    var index = 0;
+    for (var component = 0; component < 3; component++){
+        for (var direction = -1; direction <= 1; direction += 2){
+            var normal = new Vec3(0,0,0);
+            normal.set_component(component,direction);
+            var plane = new Plane(normal,direction == 1 ? 1 : 0);
+            func(component, direction, index, plane);
+            index++;
+        }
+    }
+}
+
 export class BlockType {
-    static base_type_ids = [];
-    static types = [];
-    static bitmap_to_type = new Map();
-
-    static get_brightness(normal){
-        return Math.min(1,Math.max(
-            0,
-            normal.dot(Graphics.light_vec0),
-            normal.dot(Graphics.light_vec1)
-        )*(1-Graphics.ambient) + Graphics.ambient);
-    }
-
-    static border_brightnesses = [];
-
-    static get_random_id(){
-        return random.rand_int(BlockType.types.length);
-    }
-
     constructor(id, positions, bitmap, faces, expanded_positions, expanded_faces){
         this.id = id;
         this.positions = positions;
+        this.original_positions_length = this.positions.length;
         this.bitmap = bitmap;
-        BlockType.bitmap_to_type.set(bitmap,this);
+        bitmap_to_type.set(bitmap,this);
         this.faces = faces;
         this.expanded_positions = expanded_positions;
         this.expanded_faces = expanded_faces;
@@ -54,11 +77,7 @@ export class BlockType {
 
         this.triangulated_faces = [];
         this.faces.forEach((face)=>{
-            var positions = [];
-            face.forEach((pos_id)=>{
-                positions.push(this.positions[pos_id]);
-            });
-            this.triangulated_faces.push(BlockType.triangulate(positions));
+            this.triangulated_faces.push(triangulate(face));
         });
 
         this.planes = [];
@@ -72,7 +91,7 @@ export class BlockType {
             this.planes.push(plane);
             
             this.brightnesses.push(
-                BlockType.get_brightness(plane.normal)
+                get_brightness(plane.normal)
             );
         });
 
@@ -117,7 +136,7 @@ export class BlockType {
         });
 
         this.border_face_ids = [];
-        BlockType.iterate_borders((component, direction, index, plane)=>{
+        iterate_borders((component, direction, index, plane)=>{
             var found = false;
             for (var i = 0; i < this.planes.length; i++){
                 if (this.planes[i].equal(plane)){
@@ -141,24 +160,8 @@ export class BlockType {
         this.clipped_faces = [[],[],[],[],[],[]];
     }
 
-    static iterate_borders(func){
-        var index = 0;
-        for (var component = 0; component < 3; component++){
-            for (var direction = -1; direction <= 1; direction += 2){
-                var normal = new Vec3(0,0,0);
-                normal.set_component(component,direction);
-                var plane = new Plane(normal,direction == 1 ? 1 : 0);
-                func(component, direction, index, plane);
-                index++;
-            }
-        }
-    }
-
-    static clip_face(normal, a, b){
-        if (a.length == 4 && b.length == 3){
-            Math.abs(0);
-        }
-        if (b.length == 0){
+    clip_face(normal, a, neighbor, b){
+        if (b == null || b.length == 0){
             return a;
         }
         //find line that crosses through square
@@ -166,8 +169,10 @@ export class BlockType {
         var b1 = null;
         for (var i = 0; i < b.length; i++){
             var j = (i + 1) % b.length;
-            var ip = b[i];
-            var jp = b[j];
+            var ii = b[i];
+            var ji = b[j];
+            var ip = neighbor.positions[ii];
+            var jp = neighbor.positions[ji];
             if (
                 (ip.x != jp.x && ip.y != jp.y) ||
                 (ip.x != jp.x && ip.z != jp.z) ||
@@ -187,7 +192,7 @@ export class BlockType {
         var bvec = b1.clone().sub(b0);
         var plane = Plane.from_perpendicular(b0,bvec,normal);
         for (var i = 0; i < b.length; i++){
-            if (plane.distance_to(b[i]) > EPSILON){
+            if (plane.distance_to(neighbor.positions[b[i]]) > EPSILON){
                 plane.flip();
                 break;
             }
@@ -195,13 +200,15 @@ export class BlockType {
         var clipped = [];
         for (var i = 0; i < a.length; i++){
             var j = (i + 1) % a.length;
-            var ip = a[i];
-            var jp = a[j];
+            var ii = a[i];
+            var ji = a[j];
+            var ip = this.positions[ii];
+            var jp = this.positions[ji];
             var id = plane.distance_to(ip);
             var jd = plane.distance_to(jp);
             
             if (id >= -EPSILON){
-                clipped.push(ip.clone());
+                clipped.push(ii);
             }
             if (
                 (id > EPSILON && jd < -EPSILON) ||
@@ -211,81 +218,86 @@ export class BlockType {
                 var t = Math.abs(id) / total;
                 var lp = ip.clone();
                 lp.lerp(jp,t);
-                clipped.push(lp);
+                var found = -1;
+                for (var k = this.original_positions_length; k < this.positions.length; k++){
+                    if (this.positions[k].equal(lp)){
+                        found = k;
+                        break;
+                    }
+                }
+                if (found < 0){
+                    this.positions.push(lp);
+                    found = this.positions.length-1;
+                }
+                clipped.push(found);
             }
         }
         if (clipped.length < 3) clipped = [];
         return clipped;
     }
 
-    static triangulate(face){
-        switch (face.length){
-            case 3: return face;
-            case 4: return [face[0],face[1],face[2], face[2],face[3],face[0]];
-            default: return null;
-        }
-    }
-
     get_border_face(border_id){
-        var face = [];
         var face_id = this.border_face_ids[border_id];
-        if (face_id < 0) return face;
-        this.faces[face_id].forEach((index)=>{
-            face.push(this.positions[index].clone());
-        });
-        return face;
+        if (face_id < 0) return null;
+        return this.faces[face_id];
     }
 
     build_clipped_faces(){
         const inv = [1,0,3,2,5,4];
-        BlockType.iterate_borders((component, direction, index, plane)=>{
+        iterate_borders((component, direction, index, plane)=>{
             var face = this.get_border_face(index);
-            BlockType.types.forEach((type)=>{
-                var neighbor_face = type.get_border_face(inv[index]);
-                this.clipped_faces[index].push(
-                    BlockType.triangulate(
-                        BlockType.clip_face(plane.normal,face,neighbor_face)
-                    )
-                );
-            });
+            if (face != null){
+                types.forEach((type)=>{
+                    var neighbor_face = type.get_border_face(inv[index]);
+                    this.clipped_faces[index].push(
+                        triangulate(
+                            this.clip_face(plane.normal,face,type,neighbor_face)
+                        )
+                    );
+                });
+            }
         });
     }
 
-    static draw_face(x, y, z, face, brightness, color){
+    draw_face(x, y, z, face, brightness, color){
         Graphics.color(
             brightness * color.r,
             brightness * color.g,
             brightness * color.b,
             color.a
         );
-        face.forEach((position, index)=>{
+        for (var i = 0; i < face.length; i++){
+            var pos = this.positions[face[i]];
             Graphics.position(
-                x + position.x,
-                y + position.y,
-                z + position.z
+                x + pos.x,
+                y + pos.y,
+                z + pos.z
             );
-        });
+        }
     }
 
     draw(color){
         this.triangulated_faces.forEach((face, face_id)=>{
             var brightness = this.brightnesses[face_id];
-            BlockType.draw_face(0, 0, 0, face, brightness, color);
+            this.draw_face(0, 0, 0, face, brightness, color);
         });
     }
 
     draw_clipped_face(x, y, z, index, neighbor_id, color){
+        if (index == 3 && neighbor_id == 3){
+            Math.abs(0);
+        }
         var face = this.clipped_faces[index][neighbor_id];
         if (face == null) return;
-        var brightness = BlockType.border_brightnesses[index];
-        BlockType.draw_face(x, y, z, face, brightness, color);
+        var brightness = border_brightnesses[index];
+        this.draw_face(x, y, z, face, brightness, color);
     }
 
     draw_non_border_faces(x, y, z, color){
         this.non_border_face_ids.forEach((face_id)=>{
             var face = this.triangulated_faces[face_id];
             var brightness = this.brightnesses[face_id];
-            BlockType.draw_face(x, y, z, face, brightness, color);
+            this.draw_face(x, y, z, face, brightness, color);
         });
     }
 
@@ -307,340 +319,342 @@ export class BlockType {
             Graphics.end();
         Graphics.pop();
     }
+}
 
-    static get_by_bitmap(bitmap){
-        return BlockType.bitmap_to_type.get(bitmap);
-    }
-
-    static push_type(positions, bitmap, faces, expanded_positions, expanded_faces){
-        BlockType.types.push(new BlockType(
-            BlockType.types.length,
-            positions,
-            bitmap,
-            faces,
-            expanded_positions,
-            expanded_faces
-        ));
-    }
-
-    static gen(positions, faces, expanded_positions, expanded_faces){
-        for (var z = 0; z < 4; z++){
-            for (var x = 0; x < 4; x++){
-                for (var y = 0; y < 4; y++){
-                    var rotated_positions = [];
-                    for (var i = 0; i < positions.length; i++){
-                        var pos = positions[i].clone();
-                        pos.sub(new Vec3(1,1,1));
-                        pos.rotate_x(x*90.0);
-                        pos.rotate_y(y*90.0);
-                        pos.rotate_z(z*90.0);
-                        pos.add(new Vec3(1,1,1));
-                        pos.round();
-                        rotated_positions.push(pos);
-                    }
-                    var bitmap = get_bitmap(rotated_positions);
-                    if (BlockType.get_by_bitmap(bitmap) != null) continue;
-                    var rotated_expanded_positions = [];
-                    for (var i = 0; i < expanded_positions.length; i++){
-                        var ep = expanded_positions[i];
-                        var offset = ep.offset.clone();
-                        offset.rotate_x(x*90.0);
-                        offset.rotate_y(y*90.0);
-                        offset.rotate_z(z*90.0);
-                        offset.round();
-                        rotated_expanded_positions.push(new ExpandedPosition(
+function add_type(positions, faces, expanded_positions, expanded_faces){
+    for (var z = 0; z < 4; z++){
+        for (var x = 0; x < 4; x++){
+            for (var y = 0; y < 4; y++){
+                var rotated_positions = [];
+                for (var i = 0; i < positions.length; i++){
+                    var pos = positions[i].clone();
+                    pos.subc(1, 1, 1);
+                    pos.rotate_x(x * 90);
+                    pos.rotate_y(y * 90);
+                    pos.rotate_z(z * 90);
+                    pos.addc(1, 1, 1);
+                    pos.round();
+                    rotated_positions.push(pos);
+                }
+                var bitmap = get_bitmap(rotated_positions);
+                if (get_by_bitmap(bitmap) != null) continue;
+                var rotated_expanded_positions = [];
+                for (var i = 0; i < expanded_positions.length; i++){
+                    var ep = expanded_positions[i];
+                    var offset = ep.offset.clone();
+                    offset.rotate_x(x * 90);
+                    offset.rotate_y(y * 90);
+                    offset.rotate_z(z * 90);
+                    offset.round();
+                    rotated_expanded_positions.push(
+                        new ExpandedPosition(
                             ep.parent,
                             offset
-                        ));
-                    }
-                    BlockType.push_type(
-                        rotated_positions,
-                        bitmap,
-                        faces,
-                        rotated_expanded_positions,
-                        expanded_faces
+                        )
                     );
-                    if (x == 0 && y == 0 && z == 0){
-                        BlockType.base_type_ids.push(
-                            BlockType.types.length-1
-                        );
-                    }
+                }
+                push_type(
+                    rotated_positions,
+                    bitmap,
+                    faces,
+                    rotated_expanded_positions,
+                    expanded_faces
+                );
+                if (x == 0 && y == 0 && z == 0){
+                    base_type_ids.push(
+                        types.length-1
+                    );
                 }
             }
         }
     }
+}
 
-    static init(){
+function get_by_bitmap(bitmap){
+    return bitmap_to_type.get(bitmap);
+}
 
-        BlockType.iterate_borders((component, direction, index, plane)=>{
-            BlockType.border_brightnesses.push(BlockType.get_brightness(plane.normal))
-        });
+function push_type(positions, bitmap, faces, expanded_positions, expanded_faces){
+    types.push(new BlockType(
+        types.length,
+        positions,
+        bitmap,
+        faces,
+        expanded_positions,
+        expanded_faces
+    ));
+}
 
-        BlockType.push_type([],0,[],[],[]); // air
+export function init(){
 
-        BlockType.base_type_ids.push(
-            BlockType.types.length-1
-        );
+    iterate_borders((component, direction, index, plane)=>{
+        border_brightnesses.push(get_brightness(plane.normal))
+    });
 
-        BlockType.gen( // cube
-            [ //positions
-                new Vec3(0,0,0),
-                new Vec3(2,0,0),
-                new Vec3(2,2,0),
-                new Vec3(0,2,0),
+    push_type([],0,[],[],[]); // air
 
-                new Vec3(0,0,2),
-                new Vec3(2,0,2),
-                new Vec3(2,2,2),
-                new Vec3(0,2,2),
-            ],
-            [ //faces
-                [2,1,0,3],
-                [7,4,5,6],
-                [4,0,1,5],
-                [3,7,6,2],
-                [3,0,4,7],
-                [6,5,1,2],
-            ],
-            [ //expanded positions
-                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
-                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
-                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
-                new ExpandedPosition(3, new Vec3(-1,+1,-1)),
+    base_type_ids.push(
+        types.length-1
+    );
 
-                new ExpandedPosition(4, new Vec3(-1,-1,+1)),
-                new ExpandedPosition(5, new Vec3(+1,-1,+1)),
-                new ExpandedPosition(6, new Vec3(+1,+1,+1)),
-                new ExpandedPosition(7, new Vec3(-1,+1,+1)),
-            ],
-            [ //expanded faces
-                [2,1,0,3],
-                [7,4,5,6],
-                [4,0,1,5],
-                [3,7,6,2],
-                [3,0,4,7],
-                [6,5,1,2],
-            ]
-        );
+    add_type( // cube
+        [ //positions
+            new Vec3(0,0,0),
+            new Vec3(2,0,0),
+            new Vec3(2,2,0),
+            new Vec3(0,2,0),
 
-        BlockType.gen( // cube
-            [ //positions
-                new Vec3(0,0,0),
-                new Vec3(2,0,0),
-                new Vec3(2,1,0),
-                new Vec3(0,1,0),
+            new Vec3(0,0,2),
+            new Vec3(2,0,2),
+            new Vec3(2,2,2),
+            new Vec3(0,2,2),
+        ],
+        [ //faces
+            [2,1,0,3],
+            [7,4,5,6],
+            [4,0,1,5],
+            [3,7,6,2],
+            [3,0,4,7],
+            [6,5,1,2],
+        ],
+        [ //expanded positions
+            new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+            new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+            new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+            new ExpandedPosition(3, new Vec3(-1,+1,-1)),
 
-                new Vec3(0,0,2),
-                new Vec3(2,0,2),
-                new Vec3(2,1,2),
-                new Vec3(0,1,2),
-            ],
-            [ //faces
-                [2,1,0,3],
-                [7,4,5,6],
-                [4,0,1,5],
-                [3,7,6,2],
-                [3,0,4,7],
-                [6,5,1,2],
-            ],
-            [ //expanded positions
-                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
-                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
-                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
-                new ExpandedPosition(3, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(4, new Vec3(-1,-1,+1)),
+            new ExpandedPosition(5, new Vec3(+1,-1,+1)),
+            new ExpandedPosition(6, new Vec3(+1,+1,+1)),
+            new ExpandedPosition(7, new Vec3(-1,+1,+1)),
+        ],
+        [ //expanded faces
+            [2,1,0,3],
+            [7,4,5,6],
+            [4,0,1,5],
+            [3,7,6,2],
+            [3,0,4,7],
+            [6,5,1,2],
+        ]
+    );
 
-                new ExpandedPosition(4, new Vec3(-1,-1,+1)),
-                new ExpandedPosition(5, new Vec3(+1,-1,+1)),
-                new ExpandedPosition(6, new Vec3(+1,+1,+1)),
-                new ExpandedPosition(7, new Vec3(-1,+1,+1)),
-            ],
-            [ //expanded faces
-                [2,1,0,3],
-                [7,4,5,6],
-                [4,0,1,5],
-                [3,7,6,2],
-                [3,0,4,7],
-                [6,5,1,2],
-            ]
-        );
+    add_type( // slab
+        [ //positions
+            new Vec3(0,0,0),
+            new Vec3(2,0,0),
+            new Vec3(2,1,0),
+            new Vec3(0,1,0),
 
-        BlockType.gen(
-            [ // 45 wedge
-                new Vec3(0,0,0),
-                new Vec3(2,0,0),
-                new Vec3(2,2,0),
+            new Vec3(0,0,2),
+            new Vec3(2,0,2),
+            new Vec3(2,1,2),
+            new Vec3(0,1,2),
+        ],
+        [ //faces
+            [2,1,0,3],
+            [7,4,5,6],
+            [4,0,1,5],
+            [3,7,6,2],
+            [3,0,4,7],
+            [6,5,1,2],
+        ],
+        [ //expanded positions
+            new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+            new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+            new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+            new ExpandedPosition(3, new Vec3(-1,+1,-1)),
 
-                new Vec3(0,0,2),
-                new Vec3(2,0,2),
-                new Vec3(2,2,2),
-            ],
-            [
-                [2,1,0],
-                [3,4,5],
-                
-                [3,0,1,4],
-                [5,4,1,2],
+            new ExpandedPosition(4, new Vec3(-1,-1,+1)),
+            new ExpandedPosition(5, new Vec3(+1,-1,+1)),
+            new ExpandedPosition(6, new Vec3(+1,+1,+1)),
+            new ExpandedPosition(7, new Vec3(-1,+1,+1)),
+        ],
+        [ //expanded faces
+            [2,1,0,3],
+            [7,4,5,6],
+            [4,0,1,5],
+            [3,7,6,2],
+            [3,0,4,7],
+            [6,5,1,2],
+        ]
+    );
 
-                [0,3,5,2]
-            ],
-            [
-                new ExpandedPosition(0, new Vec3(-1,+1,-1)),
-                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
-                new ExpandedPosition(3, new Vec3(-1,-1,+1)),
-                new ExpandedPosition(3, new Vec3(-1,+1,+1)),
+    add_type(
+        [ // 45 wedge
+            new Vec3(0,0,0),
+            new Vec3(2,0,0),
+            new Vec3(2,2,0),
 
-                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
-                new ExpandedPosition(2, new Vec3(-1,+1,-1)),
-                new ExpandedPosition(5, new Vec3(-1,+1,+1)),
-                new ExpandedPosition(5, new Vec3(+1,+1,+1)),
-
-                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
-                new ExpandedPosition(4, new Vec3(+1,-1,+1))
-            ],
-            [
-                [0,1,2,3],
-                [4,5,6,7],
-
-                [0,3,6,5],
-
-                [4,8,1,0,5],
-                [3,2,9,7,6],
-
-                [2,1,8,9],
-                [7,9,8,4]
-            ]
-        );
-
-        BlockType.gen(
-            [ // 45 corner
-                new Vec3(0,2,0),
-                new Vec3(0,0,0),
-                new Vec3(0,0,2),
-                new Vec3(2,0,0),
-            ],
-            [
-                [0,1,2],
-                [0,3,1],
-                [2,1,3],
-                [0,2,3]
-            ],
-            [
-                new ExpandedPosition(0, new Vec3(-1,+1,-1)),
-                new ExpandedPosition(0, new Vec3(-1,+1,+1)),
-                new ExpandedPosition(0, new Vec3(+1,+1,+1)),
-                new ExpandedPosition(0, new Vec3(+1,+1,-1)),
-
-                new ExpandedPosition(2, new Vec3(-1,+1,+1)),
-                new ExpandedPosition(2, new Vec3(-1,-1,+1)),
-                new ExpandedPosition(2, new Vec3(+1,-1,+1)),
-                new ExpandedPosition(2, new Vec3(+1,+1,+1)),
-
-                new ExpandedPosition(3, new Vec3(+1,+1,+1)),
-                new ExpandedPosition(3, new Vec3(+1,-1,+1)),
-                new ExpandedPosition(3, new Vec3(+1,-1,-1)),
-                new ExpandedPosition(3, new Vec3(+1,+1,-1)),
-
-                new ExpandedPosition(1, new Vec3(-1,-1,-1)),
-            ],
-            [
-                [0,1,2,3],
-                [4,5,6,7],
-                [8,9,10,11],
-
-                [1,4,7,2],
-                [6,9,8,7],
-                [2,8,11,3],
-
-                [2,7,8],
-
-                [0,12,5,4,1],
-                [3,11,10,12,0],
-                [5,12,10,9,6],
-            ]
-        );
-
-        BlockType.gen(
-            [ // low wedge
-                new Vec3(0,0,0),
-                new Vec3(2,0,0),
-                new Vec3(2,1,0),
-
-                new Vec3(0,0,2),
-                new Vec3(2,0,2),
-                new Vec3(2,1,2),
-            ],
-            [
-                [2,1,0],
-                [3,4,5],
-                
-                [3,0,1,4],
-                [5,4,1,2],
-
-                [0,3,5,2]
-            ],
-            [
-                new ExpandedPosition(0, new Vec3(-1,+1,-1)),
-                new ExpandedPosition(0, new Vec3(-1,-1,-1)),
-                new ExpandedPosition(3, new Vec3(-1,-1,+1)),
-                new ExpandedPosition(3, new Vec3(-1,+1,+1)),
-
-                new ExpandedPosition(2, new Vec3(+1,+1,-1)),
-                new ExpandedPosition(2, new Vec3(-1,+1,-1)),
-                new ExpandedPosition(5, new Vec3(-1,+1,+1)),
-                new ExpandedPosition(5, new Vec3(+1,+1,+1)),
-
-                new ExpandedPosition(1, new Vec3(+1,-1,-1)),
-                new ExpandedPosition(4, new Vec3(+1,-1,+1))
-            ],
-            [
-                [0,1,2,3],
-                [4,5,6,7],
-
-                [0,3,6,5],
-
-                [4,8,1,0,5],
-                [3,2,9,7,6],
-
-                [2,1,8,9],
-                [7,9,8,4]
-            ]
-        );
-        /*
-        gen([ // high wedge
-            [0,0,0],
-            [2,0,0],
+            new Vec3(0,0,2),
+            new Vec3(2,0,2),
+            new Vec3(2,2,2),
+        ],
+        [
             [2,1,0],
-            [0,1,0],
-            [0,0,2],
-            [2,0,2],
-            [2,2,2],
-            [0,2,2],
-        ]);
+            [3,4,5],
+            
+            [3,0,1,4],
+            [5,4,1,2],
 
-        gen([ // low corner
-            [0,0,0],
-            [0,0,2],
-            [2,0,2],
+            [0,3,5,2]
+        ],
+        [
+            new ExpandedPosition(0, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+            new ExpandedPosition(3, new Vec3(-1,-1,+1)),
+            new ExpandedPosition(3, new Vec3(-1,+1,+1)),
+
+            new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+            new ExpandedPosition(2, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(5, new Vec3(-1,+1,+1)),
+            new ExpandedPosition(5, new Vec3(+1,+1,+1)),
+
+            new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+            new ExpandedPosition(4, new Vec3(+1,-1,+1))
+        ],
+        [
+            [0,1,2,3],
+            [4,5,6,7],
+
+            [0,3,6,5],
+
+            [4,8,1,0,5],
+            [3,2,9,7,6],
+
+            [2,1,8,9],
+            [7,9,8,4]
+        ]
+    );
+
+    add_type(
+        [ // 45 corner
+            new Vec3(0,2,0),
+            new Vec3(0,0,0),
+            new Vec3(0,0,2),
+            new Vec3(2,0,0),
+        ],
+        [
             [0,1,2],
-        ]);
+            [0,3,1],
+            [2,1,3],
+            [0,2,3]
+        ],
+        [
+            new ExpandedPosition(0, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(0, new Vec3(-1,+1,+1)),
+            new ExpandedPosition(0, new Vec3(+1,+1,+1)),
+            new ExpandedPosition(0, new Vec3(+1,+1,-1)),
 
-        gen([ // high corner
-            [0,0,0],
-            [2,0,0],
-            [0,1,0],
-            [0,0,2],
-            [2,0,2],
-            [0,2,2],
-            [2,1,2],
-        ]);
-        */
+            new ExpandedPosition(2, new Vec3(-1,+1,+1)),
+            new ExpandedPosition(2, new Vec3(-1,-1,+1)),
+            new ExpandedPosition(2, new Vec3(+1,-1,+1)),
+            new ExpandedPosition(2, new Vec3(+1,+1,+1)),
 
-        BlockType.types.forEach((type)=>{
-            type.build_clipped_faces();
-        });
-    }
+            new ExpandedPosition(3, new Vec3(+1,+1,+1)),
+            new ExpandedPosition(3, new Vec3(+1,-1,+1)),
+            new ExpandedPosition(3, new Vec3(+1,-1,-1)),
+            new ExpandedPosition(3, new Vec3(+1,+1,-1)),
 
-    static get(id){
-        return BlockType.types[id];
-    }
+            new ExpandedPosition(1, new Vec3(-1,-1,-1)),
+        ],
+        [
+            [0,1,2,3],
+            [4,5,6,7],
+            [8,9,10,11],
+
+            [1,4,7,2],
+            [6,9,8,7],
+            [2,8,11,3],
+
+            [2,7,8],
+
+            [0,12,5,4,1],
+            [3,11,10,12,0],
+            [5,12,10,9,6],
+        ]
+    );
+
+    add_type(
+        [ // low wedge
+            new Vec3(0,0,0),
+            new Vec3(2,0,0),
+            new Vec3(2,1,0),
+
+            new Vec3(0,0,2),
+            new Vec3(2,0,2),
+            new Vec3(2,1,2),
+        ],
+        [
+            [2,1,0],
+            [3,4,5],
+            
+            [3,0,1,4],
+            [5,4,1,2],
+
+            [0,3,5,2]
+        ],
+        [
+            new ExpandedPosition(0, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(0, new Vec3(-1,-1,-1)),
+            new ExpandedPosition(3, new Vec3(-1,-1,+1)),
+            new ExpandedPosition(3, new Vec3(-1,+1,+1)),
+
+            new ExpandedPosition(2, new Vec3(+1,+1,-1)),
+            new ExpandedPosition(2, new Vec3(-1,+1,-1)),
+            new ExpandedPosition(5, new Vec3(-1,+1,+1)),
+            new ExpandedPosition(5, new Vec3(+1,+1,+1)),
+
+            new ExpandedPosition(1, new Vec3(+1,-1,-1)),
+            new ExpandedPosition(4, new Vec3(+1,-1,+1))
+        ],
+        [
+            [0,1,2,3],
+            [4,5,6,7],
+
+            [0,3,6,5],
+
+            [4,8,1,0,5],
+            [3,2,9,7,6],
+
+            [2,1,8,9],
+            [7,9,8,4]
+        ]
+    );
+    /*
+    gen([ // high wedge
+        [0,0,0],
+        [2,0,0],
+        [2,1,0],
+        [0,1,0],
+        [0,0,2],
+        [2,0,2],
+        [2,2,2],
+        [0,2,2],
+    ]);
+
+    gen([ // low corner
+        [0,0,0],
+        [0,0,2],
+        [2,0,2],
+        [0,1,2],
+    ]);
+
+    gen([ // high corner
+        [0,0,0],
+        [2,0,0],
+        [0,1,0],
+        [0,0,2],
+        [2,0,2],
+        [0,2,2],
+        [2,1,2],
+    ]);
+    */
+
+    types.forEach((type)=>{
+        type.build_clipped_faces();
+    });
+}
+
+export function get(id){
+    return types[id];
 }

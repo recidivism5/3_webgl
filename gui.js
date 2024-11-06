@@ -1,7 +1,7 @@
 import * as Graphics from "./graphics.js";
 import {gl, canvas} from "./graphics.js"
 import {Color} from "./color.js"
-import {BlockType} from "./blocktype.js"
+import * as BlockType from "./blocktype.js"
 import {Palette} from "./palette.js"
 import {Input} from "./input.js";
 import { Block } from "./block.js";

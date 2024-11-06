@@ -1,7 +1,7 @@
 import {Vec3} from "./vec3.js"
 import {World} from "./world.js"
 import {AABB} from "./aabb.js"
-import {BlockType} from "./blocktype.js"
+import * as BlockType from "./blocktype.js"
 import * as Graphics from "./graphics.js"
 import { Plane } from "./plane.js"
 import { EPSILON } from "./epsilon.js"
