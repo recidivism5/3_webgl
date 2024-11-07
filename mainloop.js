@@ -53,8 +53,11 @@ export function main_loop(now){
 
     if (Player.raycast){
         var pos = Player.raycast.position.clone();
+        var block_id = World.get_block_id(pos.x, pos.y, pos.z);
+        var block_type = BlockType.get(block_id);
+        block_type.draw_wireframe(pos.x, pos.y, pos.z);
         pos.add(Player.raycast.normal);
-        var block_type = BlockType.get(Input.get_selected_block_id());
+        block_type = BlockType.get(Input.get_selected_block_id());
         var color = Palette.get(Input.selected_block_color_id.get()).clone();
         color.a = 127;
         Graphics.push();
