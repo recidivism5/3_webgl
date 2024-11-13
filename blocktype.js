@@ -38,15 +38,6 @@ export function get_random_id(){
     return random.rand_int(types.length);
 }
 
-function triangulate(face){
-    if (face == null) return null;
-    switch (face.length){
-        case 3: return face;
-        case 4: return [face[0],face[1],face[2], face[2],face[3],face[0]];
-        default: return null;
-    }
-}
-
 export function iterate_borders(func){
     var index = 0;
     for (var component = 0; component < 3; component++){
@@ -73,11 +64,6 @@ export class BlockType {
 
         this.positions.forEach((p)=>{
             p.scale(0.5);
-        });
-
-        this.triangulated_faces = [];
-        this.faces.forEach((face)=>{
-            this.triangulated_faces.push(triangulate(face));
         });
 
         this.planes = [];
@@ -162,6 +148,7 @@ export class BlockType {
 
     clip_face(normal, a, neighbor, b){
         if (b == null || b.length == 0){
+            if (a.length == 0) return null;
             return a;
         }
         //find line that crosses through square
@@ -187,7 +174,7 @@ export class BlockType {
             }
         }
         if (b0 == null){
-            return [];
+            return null;
         }
         var bvec = b1.clone().sub(b0);
         var plane = Plane.from_perpendicular(b0,bvec,normal);
@@ -232,7 +219,7 @@ export class BlockType {
                 clipped.push(found);
             }
         }
-        if (clipped.length < 3) clipped = [];
+        if (clipped.length < 3) clipped = null;
         return clipped;
     }
 
@@ -250,9 +237,7 @@ export class BlockType {
                 types.forEach((type)=>{
                     var neighbor_face = type.get_border_face(inv[index]);
                     this.clipped_faces[index].push(
-                        triangulate(
-                            this.clip_face(plane.normal,face,type,neighbor_face)
-                        )
+                        this.clip_face(plane.normal,face,type,neighbor_face)
                     );
                 });
             }
@@ -266,18 +251,33 @@ export class BlockType {
             brightness * color.b,
             color.a
         );
-        for (var i = 0; i < face.length; i++){
-            var pos = this.positions[face[i]];
-            Graphics.position(
-                x + pos.x,
-                y + pos.y,
-                z + pos.z
-            );
+        switch (face.length){
+            case 3:
+                for (var i = 0; i < face.length; i++){
+                    var pos = this.positions[face[i]];
+                    Graphics.position(
+                        x + pos.x,
+                        y + pos.y,
+                        z + pos.z
+                    );
+                }
+                break;
+            case 4:
+                const indices = [0,1,2,2,3,0];
+                for (var i = 0; i < indices.length; i++){
+                    var pos = this.positions[face[indices[i]]];
+                    Graphics.position(
+                        x + pos.x,
+                        y + pos.y,
+                        z + pos.z
+                    );
+                }
+                break;
         }
     }
 
     draw(color){
-        this.triangulated_faces.forEach((face, face_id)=>{
+        this.faces.forEach((face, face_id)=>{
             var brightness = this.brightnesses[face_id];
             this.draw_face(0, 0, 0, face, brightness, color);
         });
@@ -295,7 +295,7 @@ export class BlockType {
 
     draw_non_border_faces(x, y, z, color){
         this.non_border_face_ids.forEach((face_id)=>{
-            var face = this.triangulated_faces[face_id];
+            var face = this.faces[face_id];
             var brightness = this.brightnesses[face_id];
             this.draw_face(x, y, z, face, brightness, color);
         });
