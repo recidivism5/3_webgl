@@ -286,14 +286,53 @@ export class BlockType {
         });
     }
 
-    draw_clipped_face(x, y, z, index, neighbor_id, color){
-        if (index == 3 && neighbor_id == 3){
-            Math.abs(0);
-        }
+    draw_clipped_face(x, y, z, component, index, neighbor_id, color){
         var face = this.clipped_faces[index][neighbor_id];
         if (face == null) return;
         var brightness = border_brightnesses[index];
-        this.draw_face(x, y, z, face, brightness, color);
+        Graphics.color(
+            brightness * color.r,
+            brightness * color.g,
+            brightness * color.b,
+            color.a
+        );
+        const uv_free_axes = [
+            [1,2],
+            [0,2],
+            [0,1]
+        ];
+        var fa = uv_free_axes[component];
+        switch (face.length){
+            case 3:
+                for (var i = 0; i < face.length; i++){
+                    var pos = this.positions[face[i]];
+                    Graphics.texcoord(
+                        pos.get_component(fa[0]),
+                        pos.get_component(fa[1]),
+                    );
+                    Graphics.position(
+                        x + pos.x,
+                        y + pos.y,
+                        z + pos.z
+                    );
+                }
+                break;
+            case 4:
+                const indices = [0,1,2,2,3,0];
+                for (var i = 0; i < indices.length; i++){
+                    var pos = this.positions[face[indices[i]]];
+                    Graphics.texcoord(
+                        pos.get_component(fa[0]),
+                        pos.get_component(fa[1]),
+                    );
+                    Graphics.position(
+                        x + pos.x,
+                        y + pos.y,
+                        z + pos.z
+                    );
+                }
+                break;
+        }
     }
 
     draw_non_border_faces(x, y, z, color){

@@ -69,7 +69,7 @@ export class Chunk {
                     neighbor_pos.z
                 );
             }
-            type.draw_clipped_face(x, y, z, index, neighbor_id, color);
+            type.draw_clipped_face(x, y, z, component, index, neighbor_id, color);
         });
         type.draw_non_border_faces(x, y, z, color);
     }
