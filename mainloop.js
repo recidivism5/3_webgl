@@ -33,7 +33,7 @@ export function main_loop(now){
 
     gl.viewport(0,0,canvas.width,canvas.height);
 
-    gl.clearColor(1.0,1.0,1.0,1.0);
+    gl.clearColor(0.6588,0.9568,1.0,1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.enable(gl.DEPTH_TEST);
