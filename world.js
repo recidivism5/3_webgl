@@ -20,7 +20,8 @@ export class World {
     }
     
     static draw(){
-        Graphics.use_color();
+        Graphics.use_texture();
+        Graphics.bind_texture("grass.png");
         World.chunks.forEach((chunk,key)=>{
             chunk.draw();
         });

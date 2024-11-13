@@ -264,7 +264,10 @@ export class BlockType {
                 break;
             case 4:
                 const indices = [0,1,2,2,3,0];
+                const texcoords = [[0,1],[0,0],[1,0],[1,0],[1,1],[0,1]];
                 for (var i = 0; i < indices.length; i++){
+                    var tc = texcoords[i];
+                    Graphics.texcoord(tc[0],tc[1]);
                     var pos = this.positions[face[indices[i]]];
                     Graphics.position(
                         x + pos.x,

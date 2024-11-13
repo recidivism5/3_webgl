@@ -28,6 +28,39 @@ void main(){
 }
 `
 
+const texture_vert_src = 
+`
+attribute vec3 a_position;
+attribute vec2 a_texcoord;
+attribute vec4 a_color;
+
+varying vec2 v_texcoord;
+varying vec4 v_color;
+
+uniform mat4 u_modelview;
+uniform mat4 u_projection;
+
+void main(){
+    v_texcoord = a_texcoord;
+    v_color = a_color;
+    gl_Position = u_projection * u_modelview * vec4(a_position,1.0);
+}
+`;
+
+const texture_frag_src =
+`
+precision mediump float;
+
+varying vec2 v_texcoord;
+varying vec4 v_color;
+
+uniform sampler2D u_sampler;
+
+void main(){
+	gl_FragColor = v_color * texture2D(u_sampler, v_texcoord);
+}
+`
+
 const direct_vert_src =
 `
 attribute vec3 a_position;
@@ -117,8 +150,9 @@ function set_attrib(name, size, type, normalize, stride, offset){
     gl.vertexAttribPointer(loc,size,type,normalize,stride,offset);
 }
 
-var color_shader;
-var direct_shader;
+var color_shader,
+    texture_shader,
+    direct_shader;
 
 const color_vertex_size = 4*4;
 
@@ -225,6 +259,7 @@ export function init(){
     }
 
     color_shader = compile_shader(color_vert_src, color_frag_src);
+    texture_shader = compile_shader(texture_vert_src, texture_frag_src);
     direct_shader = compile_shader(direct_vert_src, direct_frag_src);
 
     vbo = gl.createBuffer();
@@ -242,6 +277,16 @@ export function use_color(){
     vertex_size = 4*4;
     set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
     set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
+}
+
+export function use_texture(){
+    shader = texture_shader;
+    gl.useProgram(shader);
+    vertex_size = (3+2)*4 + 4;
+    set_attrib("a_position", 3, gl.FLOAT, false, vertex_size, 0);
+    set_attrib("a_texcoord", 2, gl.FLOAT, false, vertex_size, 3*4);
+    set_attrib("a_color", 4, gl.UNSIGNED_BYTE, true, vertex_size, 5*4);
+    gl.uniform1i(gl.getUniformLocation(shader, "u_sampler"), 0);
 }
 
 export function use_direct(){
@@ -300,6 +345,16 @@ export function position(x, y, z){
             f32[f32offset + 0] = x;
             f32[f32offset + 1] = y;
             f32[f32offset + 2] = z;
+            u8.set(_color, u8offset);
+            break;
+
+        case texture_shader:
+            var f32offset = vcount * 6;
+            var u8offset = vcount * 6 * 4 + 5*4;
+            f32[f32offset + 0] = x;
+            f32[f32offset + 1] = y;
+            f32[f32offset + 2] = z;
+            f32.set(_texcoord, f32offset + 3);
             u8.set(_color, u8offset);
             break;
 

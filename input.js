@@ -75,7 +75,7 @@ export class Input {
             case "KeyD": Input.right = true; break;
             case "KeyS": Input.backward = true; break;
             case "KeyW": Input.forward = true; break;
-            //case "KeyT": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
+            case "KeyT": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
             case "KeyC": Input.color_mod = true; break;
             case "Space": Player.humanoid.entity.velocity.y = 0.45; break;
             case "KeyR": Input.rotations[Input.selected_block_base_id.get()].add(1); break;

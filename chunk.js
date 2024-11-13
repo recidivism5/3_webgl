@@ -32,13 +32,9 @@ export class Chunk {
     generate(){
         for (var z = 0; z < Chunk.width; z++){
             for (var x = 0; x < Chunk.width; x++){
-                this.set_block(x, 0, z, 1, 6, 15);
+                this.set_block(x, 0, z, 1, 5, 15);
             }
         }
-    }
-
-    update_lights(){
-
     }
 
     update_neighbors(){
