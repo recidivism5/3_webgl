@@ -69,25 +69,35 @@ class Collider {
     }
 }
 
+var colliders_map = new Map();
+
+function get_colliders(half_extents){
+    var key = half_extents.x.toString() + "," +
+              half_extents.y.toString() + "," + 
+              half_extents.z.toString();
+    var colliders = colliders_map.get(key);
+    if (colliders == undefined){
+        colliders = [];
+        for (var i = 0; i < BlockType.types.length; i++){
+            colliders.push(new Collider(half_extents, i));
+        }
+        colliders_map.set(key, colliders);
+    }
+    return colliders;
+}
+
 export class Entity {
     constructor(x, y, z, width, height, physics_enabled){
         this.previous_position = new Vec3(x, y, z);
         this.current_position = new Vec3(x, y, z);
         this.interpolated_position = new Vec3(x, y, z);
-        this.velocity = new Vec3(0,0,0);
+        this.velocity = new Vec3(0, 0, 0);
         this.width = width;
         this.height = height;
         this.half_extents = new Vec3(width/2,height/2,width/2);
         this.physics_enabled = physics_enabled;
-
-        this.build_colliders();
-    }
-
-    build_colliders(){
-        this.colliders = [];
-        for (var i = 0; i < BlockType.types.length; i++){
-            this.colliders.push(new Collider(this.half_extents, i));
-        }
+        this.on_ground = false;
+        this.colliders = get_colliders(this.half_extents);
     }
 
     move(v){
@@ -108,6 +118,8 @@ export class Entity {
         this.velocity.y -= 0.06;
 
         var ray = this.velocity.clone();
+
+        this.on_ground = false;
 
         var r0 = new Vec3();
         var r1 = new Vec3();
@@ -240,6 +252,9 @@ export class Entity {
                 ray.scale(1 - t);
                 ray.project_onto_plane(hit_normal);
                 this.velocity.project_onto_plane(hit_normal);
+                if (hit_normal.dot(Vec3.UP) >= 0.5){
+                    this.on_ground = true;
+                }
             } else {
                 this.current_position.add(ray);
                 ray.set_zero();

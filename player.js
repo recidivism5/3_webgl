@@ -30,6 +30,10 @@ export class Player {
             move.rotate_y(this.humanoid.head_rotation_y);
         }
         this.humanoid.move(move);
+        if (Input.jump && Player.humanoid.entity.on_ground){
+            Player.humanoid.entity.on_ground = false;
+            Player.humanoid.entity.velocity.y = 0.45;
+        }
         this.humanoid.tick();
     }
 

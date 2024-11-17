@@ -11,6 +11,7 @@ export class Input {
     static right = false;
     static forward = false;
     static backward = false;
+    static jump = false;
 
     static selected_block_base_id = null;
     static selected_block_color_id = null;
@@ -77,7 +78,7 @@ export class Input {
             case "KeyW": Input.forward = true; break;
             case "KeyT": Player.humanoid.entity.physics_enabled = !Player.humanoid.entity.physics_enabled; break;
             case "KeyC": Input.color_mod = true; break;
-            case "Space": Player.humanoid.entity.velocity.y = 0.45; break;
+            case "Space": Input.jump = true; break;
             case "KeyR": Input.rotations[Input.selected_block_base_id.get()].add(1); break;
             case "KeyF": Input.rotations[Input.selected_block_base_id.get()].add(-1); break;
             case "KeyQ": Input.selected_block_color_id.add(1); break;
@@ -97,6 +98,7 @@ export class Input {
             case "KeyD": Input.right = false; break;
             case "KeyS": Input.backward = false; break;
             case "KeyW": Input.forward = false; break;
+            case "Space": Input.jump = false; break;
             case "KeyC": Input.color_mod = false; break;
         }
     }
