@@ -1,5 +1,4 @@
-import {tick, interpolate} from "./tick.js"
-import {World} from "./world.js"
+import * as Terrain from "./terrain.js"
 import {Player} from "./player.js"
 import {Gui} from "./gui.js"
 import * as BlockType from "./blocktype.js"
@@ -13,6 +12,14 @@ var before = -1.0;
 var accumulated_time = 0.0;
 const TICK_RATE = 20.0;
 const SEC_PER_TICK = 1.0 / TICK_RATE;
+
+export function tick(){
+    Player.tick();
+}
+
+export function interpolate(t){
+    Player.interpolate(t);
+}
 
 export function main_loop(now){
     now *= 0.001; //convert to seconds
@@ -46,14 +53,11 @@ export function main_loop(now){
 
     Player.use_camera();
 
-    World.draw();
-
-    World.dude.draw(now);
-    World.dude.draw_wireframe();
+    Terrain.draw();
 
     if (Player.raycast){
         var pos = Player.raycast.position.clone();
-        var block_id = World.get_block_id(pos.x, pos.y, pos.z);
+        var block_id = Terrain.get_block_id(pos.x, pos.y, pos.z);
         var block_type = BlockType.get(block_id);
         block_type.draw_wireframe(pos.x, pos.y, pos.z);
         pos.add(Player.raycast.normal);

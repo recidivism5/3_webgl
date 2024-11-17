@@ -1,6 +1,6 @@
 import {Player} from "./player.js"
 import * as BlockType from "./blocktype.js"
-import {World} from "./world.js"
+import * as Terrain from "./terrain.js"
 import {Palette} from "./palette.js";
 import { RingValue } from "./ringvalue.js";
 
@@ -36,7 +36,7 @@ export class Input {
             var normal = Player.raycast.normal;
             switch (event.button){
                 case 0: 
-                    World.set_block_id(
+                    Terrain.set_block_id(
                         pos.x,
                         pos.y,
                         pos.z,
@@ -44,13 +44,13 @@ export class Input {
                     );
                     break;
                 case 2:
-                    World.set_block_id(
+                    Terrain.set_block_id(
                         pos.x + normal.x,
                         pos.y + normal.y,
                         pos.z + normal.z,
                         Input.get_selected_block_id()
                     );
-                    World.set_block_color_id(
+                    Terrain.set_block_color_id(
                         pos.x + normal.x,
                         pos.y + normal.y,
                         pos.z + normal.z,

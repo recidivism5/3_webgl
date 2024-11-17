@@ -1,4 +1,4 @@
-import {World} from "./world.js"
+import * as Terrain from "./terrain.js"
 import {Vec3} from "./vec3.js"
 
 export class Raycast {
@@ -13,7 +13,7 @@ export class Raycast {
         var t = 0;
         var min_i = 0;
         while (t <= 1){
-            var block_id = World.get_block_id(block_pos.x, block_pos.y, block_pos.z);
+            var block_id = Terrain.get_block_id(block_pos.x, block_pos.y, block_pos.z);
             if (block_id > 0){
                 var normal = new Vec3(0,0,0);
                 normal.set_component(min_i,-increment.get_component(min_i));

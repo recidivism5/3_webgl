@@ -1,4 +1,4 @@
-import {World} from "./world.js"
+import * as Terrain from "./terrain.js"
 import * as BlockType from "./blocktype.js"
 import * as Graphics from "./graphics.js"
 import {Palette} from "./palette.js"
@@ -38,10 +38,10 @@ export class Chunk {
     }
 
     update_neighbors(){
-        this.neighbors[0] = World.get_chunk(this.x-1,this.z);
-        this.neighbors[1] = World.get_chunk(this.x+1,this.z);
-        this.neighbors[4] = World.get_chunk(this.x,this.z-1);
-        this.neighbors[5] = World.get_chunk(this.x,this.z+1);
+        this.neighbors[0] = Terrain.get_chunk(this.x-1,this.z);
+        this.neighbors[1] = Terrain.get_chunk(this.x+1,this.z);
+        this.neighbors[4] = Terrain.get_chunk(this.x,this.z-1);
+        this.neighbors[5] = Terrain.get_chunk(this.x,this.z+1);
     }
 
     draw_block(x, y, z, type, color){
@@ -59,7 +59,7 @@ export class Chunk {
             if (neighbor_id == -1){
                 neighbor_pos.set_component(
                     component,
-                    World.get_block_offset(neighbor_pos.get_component(component))
+                    Terrain.get_block_offset(neighbor_pos.get_component(component))
                 );
                 var neighbor_chunk = this.neighbors[index];
                 if (neighbor_chunk == undefined) return;

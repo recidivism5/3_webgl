@@ -1,5 +1,5 @@
 import {Vec3} from "./vec3.js"
-import {World} from "./world.js"
+import * as Terrain from "./terrain.js"
 import {AABB} from "./aabb.js"
 import * as BlockType from "./blocktype.js"
 import * as Graphics from "./graphics.js"
@@ -151,7 +151,7 @@ export class Entity {
             for (var y = aabb.min.y; y <= aabb.max.y; y++){
                 for (var z = aabb.min.z; z <= aabb.max.z; z++){
                     for (var x = aabb.min.x; x <= aabb.max.x; x++){
-                        var block_id = World.get_block_id(x,y,z);
+                        var block_id = Terrain.get_block_id(x,y,z);
                         if (block_id <= 0 || block_id >= BlockType.types.length) continue;
                         var collider = this.colliders[block_id];
                         r0.copy(this.current_position);
@@ -202,7 +202,7 @@ export class Entity {
                 for (var y = aabb.min.y; y <= aabb.max.y; y++){
                     for (var z = aabb.min.z; z <= aabb.max.z; z++){
                         for (var x = aabb.min.x; x <= aabb.max.x; x++){
-                            var block_id = World.get_block_id(x,y,z);
+                            var block_id = Terrain.get_block_id(x,y,z);
                             if (block_id <= 0 || block_id >= BlockType.types.length) continue;
                             var collider = this.colliders[block_id];
                             r0.copy(this.current_position);
