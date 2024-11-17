@@ -1,19 +1,43 @@
-import {Humanoid} from "./humanoid.js"
+import {Entity} from "./entity.js"
 import {Vec3} from "./vec3.js"
-import {Input} from "./input.js"
+import * as Input from "./input.js"
 import {Raycast} from "./raycast.js"
+import * as Graphics from "./graphics.js"
 
-export class Player {
+export class Player extends Entity {
 
-    static humanoid;
-
-    static raycast = null;
-
-    static init(){
-        Player.humanoid = new Humanoid(4,4,4);
+    constructor (x, y, z){
+        super(x, y, z, 0.6, 1.8, true);
+        this.head_rotation_x = 0;
+        this.head_rotation_y = 0;
+        this.raycast = null;
     }
 
-    static tick(){
+    get_head_y(){
+        return this.interpolated_position.y + 0.72;
+    }
+
+    use_camera(){
+        Graphics.project_perspective(90,Graphics.canvas.width/Graphics.canvas.height,0.01,100.0);
+
+        Graphics.load_identity();
+        Graphics.rotate_x(-this.head_rotation_x);
+        Graphics.rotate_y(-this.head_rotation_y);
+        Graphics.translate(
+            -this.interpolated_position.x,
+            -this.get_head_y(),
+            -this.interpolated_position.z,
+        );
+    }
+
+    get_head_direction(){
+        var direction = new Vec3(0,0,-1);
+        direction.rotate_x(this.head_rotation_x);
+        direction.rotate_y(this.head_rotation_y);
+        return direction;
+    }
+
+    tick(){
         var move = new Vec3(0,0,0);
         if (Input.left ^ Input.right){
             move.x = Input.left ? -1 : 1;
@@ -24,34 +48,31 @@ export class Player {
         if (!move.is_zero()){
             move.normalize();
             move.scale(0.4);
-            if (!this.humanoid.entity.physics_enabled){
-                move.rotate_x(this.humanoid.head_rotation_x);
+            if (!this.physics_enabled){
+                move.rotate_x(this.head_rotation_x);
             }
-            move.rotate_y(this.humanoid.head_rotation_y);
+            move.rotate_y(this.head_rotation_y);
         }
-        this.humanoid.move(move);
-        if (Input.jump && Player.humanoid.entity.on_ground){
-            Player.humanoid.entity.on_ground = false;
-            Player.humanoid.entity.velocity.y = 0.45;
+        this.move(move);
+        if (Input.jump && this.on_ground){
+            this.on_ground = false;
+            this.velocity.y = 0.45;
         }
-        this.humanoid.tick();
+        super.tick();
     }
 
-    static interpolate(t){
-        this.humanoid.interpolate(t);
+    update_raycast(){
+        var direction = this.get_head_direction().scale(5);
+        var head_pos = new Vec3(
+            this.interpolated_position.x,
+            this.get_head_y(),
+            this.interpolated_position.z
+        );
+        this.raycast = Raycast.cubes(head_pos, direction);
     }
 
-    static use_camera(){
-        this.humanoid.use_camera();
-    }
-
-    static update_raycast(){
-        var direction = this.humanoid.get_head_direction().scale(5);
-        Player.raycast = Raycast.cubes(this.humanoid.head_position, direction);
-    }
-
-    static is_targeting_block(x, y, z){
-        if (Player.raycast == null) return false;
-        return Player.raycast.position.equal(new Vec3(x,y,z));
+    is_targeting_block(x, y, z){
+        if (this.raycast == null) return false;
+        return this.raycast.position.equal(new Vec3(x,y,z));
     }
 }
