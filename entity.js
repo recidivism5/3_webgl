@@ -108,6 +108,8 @@ export class Entity {
 
     tick(){
 
+        this.on_ground = false;
+
         this.previous_position.copy(this.current_position);        
 
         if (!this.physics_enabled){
@@ -118,8 +120,6 @@ export class Entity {
         this.velocity.y -= 0.06;
 
         var ray = this.velocity.clone();
-
-        this.on_ground = false;
 
         var r0 = new Vec3();
         var r1 = new Vec3();
