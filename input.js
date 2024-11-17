@@ -25,8 +25,10 @@ export function get_selected_block_id(){
 
 function mousemove(event){
     if (document.pointerLockElement != null){
-        player.head_rotation_x -= mouse_sensitivity * event.movementY;
-        player.head_rotation_y -= mouse_sensitivity * event.movementX;
+        player.rotate_head(
+            -mouse_sensitivity * event.movementY,
+            -mouse_sensitivity * event.movementX
+        );
     }
 }
 

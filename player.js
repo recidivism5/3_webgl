@@ -13,6 +13,16 @@ export class Player extends Entity {
         this.raycast = null;
     }
 
+    rotate_head(x, y){
+        this.head_rotation_x += x;
+        if (this.head_rotation_x > 89.99){
+            this.head_rotation_x = 89.99;
+        } else if (this.head_rotation_x < -89.99){
+            this.head_rotation_x = -89.99;
+        }
+        this.head_rotation_y += y;
+    }
+
     get_head_y(){
         return this.interpolated_position.y + 0.72;
     }
