@@ -1,7 +1,7 @@
 import {player} from "./main.js"
 import * as BlockType from "./blocktype.js"
 import * as Terrain from "./terrain.js"
-import {Palette} from "./palette.js";
+import * as Palette from "./palette.js";
 import { RingValue } from "./ringvalue.js";
 
 export var mouse_sensitivity = 0.1;

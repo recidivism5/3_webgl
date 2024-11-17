@@ -1,7 +1,7 @@
 import * as Terrain from "./terrain.js"
 import * as BlockType from "./blocktype.js"
 import * as Graphics from "./graphics.js"
-import {Palette} from "./palette.js"
+import * as Palette from "./palette.js"
 import {Vec3} from "./vec3.js"
 import {Player} from "./player.js"
 import { Block } from "./block.js"

@@ -5,7 +5,7 @@ import * as Graphics from "./graphics.js"
 import { Player } from "./player.js"
 import {Gui} from "./gui.js"
 import {gl, canvas} from "./graphics.js"
-import { Palette } from "./palette.js"
+import * as Palette from "./palette.js"
 
 export var player;
 
