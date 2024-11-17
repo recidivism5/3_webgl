@@ -21,6 +21,12 @@ export class Player extends Entity {
             this.head_rotation_x = -89.99;
         }
         this.head_rotation_y += y;
+        while (this.head_rotation_y > 360){
+            this.head_rotation_y -= 360;
+        }
+        while (this.head_rotation_y < 0){
+            this.head_rotation_y += 360;
+        }
     }
 
     get_head_y(){
