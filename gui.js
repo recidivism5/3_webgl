@@ -29,6 +29,8 @@ function hollow_rect_centered(x, y, z, width, height, thickness){
 export class Gui {
 
     static draw(){
+        Graphics.use_texture();
+        Graphics.bind_texture("grass_grey.png");
         Graphics.project_ortho(0,canvas.width,0,canvas.height,-100,100);
         Graphics.load_identity();
 
