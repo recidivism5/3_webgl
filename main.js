@@ -3,11 +3,15 @@ import * as Terrain from "./terrain.js"
 import * as Input from "./input.js"
 import * as Graphics from "./graphics.js"
 import { Player } from "./player.js"
+import { Dude } from "./dude.js"
+import { Head } from "./head.js"
 import {Gui} from "./gui.js"
 import {gl, canvas} from "./graphics.js"
 import * as Palette from "./palette.js"
 
 export var player;
+var dude;
+var head;
 
 async function main(){
     if (!Graphics.init()){
@@ -28,6 +32,8 @@ async function main(){
     Terrain.set_block(6,1,3, 2,4,0);
 
     player = new Player(4, 4, 4);
+    dude = new Dude(0,4,0);
+    head = new Head(4,4,0);
 
     Input.init();
 
@@ -43,10 +49,14 @@ const SEC_PER_TICK = 1.0 / TICK_RATE;
 
 export function tick(){
     player.tick();
+    dude.tick();
+    head.tick();
 }
 
 export function interpolate(t){
     player.interpolate(t);
+    dude.interpolate(t);
+    head.interpolate(t);
 }
 
 export function main_loop(now){
@@ -99,6 +109,9 @@ export function main_loop(now){
             Graphics.end();
         Graphics.pop();
     }
+
+    dude.draw(now);
+    head.draw(now);
 
     Gui.draw();
     

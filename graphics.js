@@ -170,7 +170,7 @@ var _normal = new Float32Array([0,0,1]);
 var _texcoord = new Float32Array([0,0]);
 
 var textures = new Map();
-var bound_texture_res = 0;
+var bound_texture;
 
 var shader;
 
@@ -183,9 +183,9 @@ export const light_vec1 = new Vec3(-2,3,-1).normalize();
 export function bind_texture(name){
     var texture = textures.get(name);
     if (texture == undefined){
-        texture = gl.createTexture();
+        var id = gl.createTexture();
         
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, id);
 
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // flip textures vertically
 
@@ -201,7 +201,7 @@ export function bind_texture(name){
         const border = 0;
         const srcFormat = gl.RGBA;
         const srcType = gl.UNSIGNED_BYTE;
-        const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+        const pixel = new Uint8Array([255, 0, 255, 255]); // purple
         gl.texImage2D(
             gl.TEXTURE_2D,
             level,
@@ -214,7 +214,11 @@ export function bind_texture(name){
             pixel,
         );
 
-        texture.res = width;
+        texture = {
+            id: id,
+            width: width,
+            height: height
+        };
 
         textures.set(name, texture);
 
@@ -223,7 +227,7 @@ export function bind_texture(name){
         image.onload = () => {
             var old_texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
 
-            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.bindTexture(gl.TEXTURE_2D, texture.id);
             gl.texImage2D(
                 gl.TEXTURE_2D,
                 level,
@@ -233,7 +237,8 @@ export function bind_texture(name){
                 image,
             );
 
-            texture.res = image.naturalWidth;
+            texture.width = image.naturalWidth;
+            texture.height = image.naturalHeight;
 
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -247,8 +252,16 @@ export function bind_texture(name){
 
         image.src = "./textures/"+name;
     }
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    bound_texture_res = texture.res;
+    gl.bindTexture(gl.TEXTURE_2D, texture.id);
+    bound_texture = texture;
+}
+
+export function get_bound_texture_width(){
+    return bound_texture.width;
+}
+
+export function get_bound_texture_height(){
+    return bound_texture.height;
 }
 
 export function init(){
@@ -447,11 +460,12 @@ export function box(x, y, z, tx, ty){
 
     const n = 0.01;
 
-    const invres = 1 / bound_texture_res;
+    const invx = 1 / get_bound_texture_width();
+    const invy = 1 / get_bound_texture_height();
 
     normal(-1,0,0);
-    l = invres*(tx+n); r = invres*(tx+x-n);
-    b = invres*(ty+n); t = invres*(ty+y-n);
+    l = invx*(tx+n); r = invx*(tx+x-n);
+    b = invy*(ty+n); t = invy*(ty+y-n);
     texcoord(l,t); position(0,y,0);
     texcoord(l,b); position(0,0,0);
     texcoord(r,b); position(0,0,z);
@@ -460,7 +474,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,0);
 
     normal(0,0,1);
-    l = invres*(tx+x+n); r = invres*(tx+2*x-n);
+    l = invx*(tx+x+n); r = invx*(tx+2*x-n);
     texcoord(l,t); position(0,y,z);
     texcoord(l,b); position(0,0,z);
     texcoord(r,b); position(x,0,z);
@@ -469,7 +483,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,z);
 
     normal(1,0,0);
-    l = invres*(tx+2*x+n); r = invres*(tx+3*x-n);
+    l = invx*(tx+2*x+n); r = invx*(tx+3*x-n);
     texcoord(l,t); position(x,y,z);
     texcoord(l,b); position(x,0,z);
     texcoord(r,b); position(x,0,0);
@@ -478,7 +492,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(x,y,z);
 
     normal(0,0,-1);
-    l = invres*(tx+3*x+n); r = invres*(tx+4*x-n);
+    l = invx*(tx+3*x+n); r = invx*(tx+4*x-n);
     texcoord(l,t); position(x,y,0);
     texcoord(l,b); position(x,0,0);
     texcoord(r,b); position(0,0,0);
@@ -487,8 +501,8 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(x,y,0);
 
     normal(0,1,0);
-    l = invres*(tx+x+n); r = invres*(tx+2*x-n);
-    b = invres*(ty+y+n); t = invres*(ty+y+z-n);
+    l = invx*(tx+x+n); r = invx*(tx+2*x-n);
+    b = invy*(ty+y+n); t = invy*(ty+y+z-n);
     texcoord(l,t); position(0,y,0);
     texcoord(l,b); position(0,y,z);
     texcoord(r,b); position(x,y,z);
@@ -497,7 +511,7 @@ export function box(x, y, z, tx, ty){
     texcoord(l,t); position(0,y,0);
 
     normal(0,-1,0);
-    l = invres*(tx+2*x+n); r = invres*(tx+3*x-n);
+    l = invx*(tx+2*x+n); r = invx*(tx+3*x-n);
     texcoord(l,t); position(0,0,z);
     texcoord(l,b); position(0,0,0);
     texcoord(r,b); position(x,0,0);
