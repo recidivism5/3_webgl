@@ -1,9 +1,15 @@
 import {Entity} from "./entity.js"
 import * as Graphics from "./graphics.js"
+import { Vec3 } from "./vec3.js"
 
 export class Dude extends Entity{
     constructor(x, y, z){
         super(x, y, z, 8/16, (9+9+8) / 16, true);
+    }
+
+    tick(){
+        this.accelerate(Vec3.ZERO);
+        super.tick();
     }
 
     draw(now){

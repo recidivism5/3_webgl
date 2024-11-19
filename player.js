@@ -69,7 +69,7 @@ export class Player extends Entity {
             }
             move.rotate_y(this.head_rotation_y);
         }
-        this.move(move);
+        this.accelerate(move);
         if (Input.jump && this.on_ground){
             this.on_ground = false;
             this.velocity.y = 0.45;

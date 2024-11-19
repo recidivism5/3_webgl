@@ -12,6 +12,7 @@ import * as Palette from "./palette.js"
 export var player;
 var dude;
 var head;
+export var entities = [];
 
 async function main(){
     if (!Graphics.init()){
@@ -34,6 +35,10 @@ async function main(){
     player = new Player(4, 4, 4);
     dude = new Dude(0,4,0);
     head = new Head(4,4,0);
+
+    entities.push(player);
+    entities.push(dude);
+    entities.push(head);
 
     Input.init();
 

@@ -8,6 +8,7 @@ export class Vec3 {
     }
 
     static UP = new Vec3(0, 1, 0);
+    static ZERO = new Vec3();
 
     clone(){
         return new Vec3(this.x, this.y, this.z);

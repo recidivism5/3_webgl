@@ -1,14 +1,14 @@
+import { Vec3 } from "./vec3.js"
+
 export class AABB {
-    constructor(min, max){
-        this.min = min;
-        this.max = max;
+    constructor(){
+        this.min = new Vec3();
+        this.max = new Vec3();
     }
 
-    clone(){
-        return new AABB(
-            this.min.clone(),
-            this.max.clone()
-        );
+    copy(aabb){
+        this.min.copy(aabb.min);
+        this.max.copy(aabb.max);
     }
 
     expand(v){
@@ -20,5 +20,14 @@ export class AABB {
 
         if (v.z > 0) this.max.z += v.z;
         else if (v.z < 0) this.min.z += v.z;
+    }
+
+    overlaps(aabb){
+        return this.min.x < aabb.max.x &&
+               this.max.x > aabb.min.x &&
+               this.min.y < aabb.max.y &&
+               this.max.y > aabb.min.y &&
+               this.min.z < aabb.max.z &&
+               this.max.z > aabb.min.z;
     }
 }
