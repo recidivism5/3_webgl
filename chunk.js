@@ -12,7 +12,7 @@ export class Chunk {
     static height = 16;
 
     static get_key(x, z){
-        return "x: " + x + "\nz: " + z;
+        return x.toString(16) + "," + z.toString(16);
     }
 
     constructor(x, z){
