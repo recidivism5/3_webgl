@@ -38,24 +38,20 @@ function mousedown(event){
         var normal = player.raycast.normal;
         switch (event.button){
             case 0: 
-                Terrain.set_block_id(
+                Terrain.set_block_with_update(
                     pos.x,
                     pos.y,
                     pos.z,
+                    0,
                     0
                 );
                 break;
             case 2:
-                Terrain.set_block_id(
+                Terrain.set_block_with_update(
                     pos.x + normal.x,
                     pos.y + normal.y,
                     pos.z + normal.z,
-                    get_selected_block_id()
-                );
-                Terrain.set_block_color_id(
-                    pos.x + normal.x,
-                    pos.y + normal.y,
-                    pos.z + normal.z,
+                    get_selected_block_id(),
                     selected_block_color_id.get()
                 );
                 break;

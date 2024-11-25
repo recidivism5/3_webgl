@@ -287,17 +287,13 @@ export function use_color(){
     gl.useProgram(color_shader);
     shader_id = 0;
     vertex_size = 4*4;
-    set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
-    set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
 }
 
 export function use_texture(){
     gl.useProgram(texture_shader);
     shader_id = 1;
     vertex_size = (3+2)*4 + 4;
-    set_attrib("a_position", 3, gl.FLOAT, false, vertex_size, 0);
-    set_attrib("a_texcoord", 2, gl.FLOAT, false, vertex_size, 3*4);
-    set_attrib("a_color", 4, gl.UNSIGNED_BYTE, true, vertex_size, 5*4);
+    
     gl.uniform1i(gl.getUniformLocation(texture_shader, "u_sampler"), 0);
 }
 
@@ -305,13 +301,30 @@ export function use_direct(){
     gl.useProgram(direct_shader);
     shader_id = 2;
     vertex_size = 9*4;
-    set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
-    set_attrib("a_normal",3,gl.FLOAT,false,vertex_size,3*4);
-    set_attrib("a_texcoord",2,gl.FLOAT,false,vertex_size,6*4);
-    set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,8*4);
 
     gl.uniform1f(gl.getUniformLocation(direct_shader, "u_ambient"), ambient);
     gl.uniform1i(gl.getUniformLocation(direct_shader, "u_sampler"), 0);
+}
+
+function bind_buffer(buf){
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    switch(shader_id){
+        case 0:
+            set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
+            set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
+            break;
+        case 1:
+            set_attrib("a_position", 3, gl.FLOAT, false, vertex_size, 0);
+            set_attrib("a_texcoord", 2, gl.FLOAT, false, vertex_size, 3*4);
+            set_attrib("a_color", 4, gl.UNSIGNED_BYTE, true, vertex_size, 5*4);
+            break;
+        case 2:
+            set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
+            set_attrib("a_normal",3,gl.FLOAT,false,vertex_size,3*4);
+            set_attrib("a_texcoord",2,gl.FLOAT,false,vertex_size,6*4);
+            set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,8*4);
+            break;
+    }
 }
 
 export function submit_lights(){
@@ -388,14 +401,61 @@ var modelview = [Mat4.new_identity()];
 var projection = Mat4.new_identity();
 
 export function end(){
+    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+    gl.bufferData(gl.ARRAY_BUFFER,u8.subarray(0,vcount * vertex_size),gl.STATIC_DRAW);
+    draw(vbo, vcount);
+}
+
+function draw(buf, vertex_count){
     var shader = gl.getParameter(gl.CURRENT_PROGRAM);
     gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_modelview"),gl.FALSE,get().to_array());
     gl.uniformMatrix4fv(gl.getUniformLocation(shader,"u_projection"),gl.FALSE,projection.to_array());
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,u8.subarray(0,vcount * vertex_size));
+    bind_buffer(buf);
     
-    gl.drawArrays(type,0,vcount);
+    gl.drawArrays(type,0,vertex_count);
+}
+
+var meshes = [];
+var open_meshes = [];
+
+export function new_mesh(){
+    var id;
+    if (open_meshes.length){
+        id = open_meshes.shift();
+    } else {
+        id = meshes.length;
+        meshes.push(
+            {
+                buf: gl.createBuffer(),
+                update: true,
+                vcount: 0
+            }
+        );
+    }
+    return id;
+}
+
+export function draw_mesh(id, callback){
+    var mesh = meshes[id];
+    if (mesh.update){
+        begin_tris();
+        callback();
+        gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buf);
+        gl.bufferData(gl.ARRAY_BUFFER,u8.subarray(0,vcount * vertex_size),gl.STATIC_DRAW);
+        mesh.vcount = vcount;
+        mesh.update = false;
+    }
+    draw(mesh.buf, mesh.vcount);
+}
+
+export function update_mesh(id){
+    if (id == undefined) return;
+    meshes[id].update = true;
+}
+
+export function delete_mesh(id){
+
 }
 
 export function get(){

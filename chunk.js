@@ -31,8 +31,9 @@ export class Chunk {
         this.blocks = new Uint8Array(Chunk.width*Chunk.width*Chunk.height*2);
         this.lights = new Uint8Array(Chunk.width*Chunk.width*Chunk.height);
         this.generate();
-        this.neighbors = [];
+        this.neighbors = [undefined,undefined,undefined,undefined,undefined,undefined];
         this.update_neighbors();
+        this.mesh = Graphics.new_mesh();
     }
 
     get_key(){
@@ -62,7 +63,7 @@ export class Chunk {
                 var b = heights[zd*4 + xd+1] + zm * (heights[(zd+1)*4 + xd+1] - heights[zd*4 + xd+1]);
                 var height = Math.floor(a + xm * (b - a));
                 for (var i = 0; i < height; i++){
-                    this.set_block(x, i, z, 1, 5, 15);
+                    this.set_block(x, i, z, 1, 5);
                 }
             }
         }
@@ -73,6 +74,14 @@ export class Chunk {
         this.neighbors[1] = Terrain.get_chunk(this.x+1,this.z);
         this.neighbors[4] = Terrain.get_chunk(this.x,this.z-1);
         this.neighbors[5] = Terrain.get_chunk(this.x,this.z+1);
+    }
+
+    update(){
+        Graphics.update_mesh(this.mesh);
+        if (this.neighbors[0] != undefined) Graphics.update_mesh(this.neighbors[0].mesh);
+        if (this.neighbors[1] != undefined) Graphics.update_mesh(this.neighbors[1].mesh);
+        if (this.neighbors[4] != undefined) Graphics.update_mesh(this.neighbors[4].mesh);
+        if (this.neighbors[5] != undefined) Graphics.update_mesh(this.neighbors[5].mesh);
     }
 
     draw_block(x, y, z, type, color){
@@ -109,21 +118,21 @@ export class Chunk {
         Graphics.push();
         Graphics.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
         
-        Graphics.begin_tris();
-        this.update_neighbors();
-        for (var y = 0; y < Chunk.height; y++){
-            for (var z = 0; z < Chunk.width; z++){
-                for (var x = 0; x < Chunk.width; x++){
-                    var id = this.get_block_id(x, y, z);
-                    if (id == 0) continue;
-                    var color_id = this.get_block_color_id(x, y, z);
-                    var color = Palette.get(color_id);
-                    this.draw_block(x, y, z, BlockType.get(id), color);
+        Graphics.draw_mesh(this.mesh, ()=>{
+            this.update_neighbors();
+            for (var y = 0; y < Chunk.height; y++){
+                for (var z = 0; z < Chunk.width; z++){
+                    for (var x = 0; x < Chunk.width; x++){
+                        var id = this.get_block_id(x, y, z);
+                        if (id == 0) continue;
+                        var color_id = this.get_block_color_id(x, y, z);
+                        var color = Palette.get(color_id);
+                        this.draw_block(x, y, z, BlockType.get(id), color);
+                    }
                 }
             }
-        }
-        Graphics.end();
-
+        });
+        
         Graphics.pop();
     }
 
@@ -191,7 +200,7 @@ export class Chunk {
         );
     }
 
-    set_block(x, y, z, id, color_id, light){
+    set_block(x, y, z, id, color_id){
         if (
             x < 0 || x >= Chunk.width ||
             y < 0 || y >= Chunk.height ||
@@ -202,6 +211,10 @@ export class Chunk {
         var offset = this.get_block_offset(x,y,z);
         this.blocks[offset*2 + 0] = id;
         this.blocks[offset*2 + 1] = color_id;
-        this.lights[offset] = light;
+    }
+
+    set_block_with_update(x, y, z, id, color_id){
+        this.set_block(x, y, z, id, color_id);
+        this.update();
     }
 }

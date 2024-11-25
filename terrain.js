@@ -83,7 +83,7 @@ export function get_block(x, y, z){
     );
 }
 
-export function set_block(x, y, z, id, color_id, light){
+export function set_block(x, y, z, id, color_id){
     var chunk = get_chunk_from_block_coords(x, z);
     if (chunk == undefined) return;
     return chunk.set_block(
@@ -91,7 +91,18 @@ export function set_block(x, y, z, id, color_id, light){
         y,
         get_block_offset(z),
         id,
-        color_id,
-        light
+        color_id
+    );
+}
+
+export function set_block_with_update(x, y, z, id, color_id){
+    var chunk = get_chunk_from_block_coords(x, z);
+    if (chunk == undefined) return;
+    return chunk.set_block_with_update(
+        get_block_offset(x),
+        y,
+        get_block_offset(z),
+        id,
+        color_id
     );
 }

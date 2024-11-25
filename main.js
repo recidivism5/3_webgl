@@ -21,24 +21,24 @@ async function main(){
 
     Terrain.init();
 
-    Terrain.set_block(0,1,0, 2,4,0);
-    Terrain.set_block(0,1,-1, 2,4,0);
-    Terrain.set_block(-2,1,0, 4,4,0);
-    Terrain.set_block(-2,1,-1, 4,4,0);
-    Terrain.set_block(3,1,2, 6,4,0);
-    Terrain.set_block(4,1,2, 6,4,0);
-    Terrain.set_block(5,1,3, 2,4,0);
-    Terrain.set_block(6,1,3, 2,4,0);
+    Terrain.set_block(0,1,0, 2,4);
+    Terrain.set_block(0,1,-1, 2,4);
+    Terrain.set_block(-2,1,0, 4,4);
+    Terrain.set_block(-2,1,-1, 4,4);
+    Terrain.set_block(3,1,2, 6,4);
+    Terrain.set_block(4,1,2, 6,4);
+    Terrain.set_block(5,1,3, 2,4);
+    Terrain.set_block(6,1,3, 2,4);
 
     player = new Player(4, 4, 4);
 
-    entities.push(new Dude(0,4,0));
-    entities.push(new Head(4,4,0,1));
-    entities.push(new Head(4,4,0,1));
-    entities.push(new Head(4,4,0,.5));
-    entities.push(new Head(4,4,0,.25));
-    entities.push(new Head(4,4,0,.125));
-    entities.push(new Head(4,4,0,.0625));
+    entities.push(new Dude(0,8,0));
+    entities.push(new Head(4,8,0,1));
+    entities.push(new Head(4,8,2,1));
+    entities.push(new Head(4,8,4,.5));
+    entities.push(new Head(2,8,6,.25));
+    entities.push(new Head(4,8,8,.125));
+    entities.push(new Head(0,8,10,.0625));
 
     Input.init();
 
