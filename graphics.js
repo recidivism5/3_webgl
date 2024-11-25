@@ -153,6 +153,7 @@ function set_attrib(name, size, type, normalize, stride, offset){
 var color_shader,
     texture_shader,
     direct_shader;
+var shader_id = 0;
 
 const color_vertex_size = 4*4;
 
@@ -171,8 +172,6 @@ var _texcoord = new Float32Array([0,0]);
 
 var textures = new Map();
 var bound_texture;
-
-var shader;
 
 export var canvas;
 export var gl;
@@ -285,41 +284,41 @@ export function init(){
 }
 
 export function use_color(){
-    shader = color_shader;
-    gl.useProgram(shader);
+    gl.useProgram(color_shader);
+    shader_id = 0;
     vertex_size = 4*4;
     set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
     set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,3*4);
 }
 
 export function use_texture(){
-    shader = texture_shader;
-    gl.useProgram(shader);
+    gl.useProgram(texture_shader);
+    shader_id = 1;
     vertex_size = (3+2)*4 + 4;
     set_attrib("a_position", 3, gl.FLOAT, false, vertex_size, 0);
     set_attrib("a_texcoord", 2, gl.FLOAT, false, vertex_size, 3*4);
     set_attrib("a_color", 4, gl.UNSIGNED_BYTE, true, vertex_size, 5*4);
-    gl.uniform1i(gl.getUniformLocation(shader, "u_sampler"), 0);
+    gl.uniform1i(gl.getUniformLocation(texture_shader, "u_sampler"), 0);
 }
 
 export function use_direct(){
-    shader = direct_shader;
-    gl.useProgram(shader);
+    gl.useProgram(direct_shader);
+    shader_id = 2;
     vertex_size = 9*4;
     set_attrib("a_position",3,gl.FLOAT,false,vertex_size,0);
     set_attrib("a_normal",3,gl.FLOAT,false,vertex_size,3*4);
     set_attrib("a_texcoord",2,gl.FLOAT,false,vertex_size,6*4);
     set_attrib("a_color",4,gl.UNSIGNED_BYTE,true,vertex_size,8*4);
 
-    gl.uniform1f(gl.getUniformLocation(shader, "u_ambient"), ambient);
-    gl.uniform1i(gl.getUniformLocation(shader, "u_sampler"), 0);
+    gl.uniform1f(gl.getUniformLocation(direct_shader, "u_ambient"), ambient);
+    gl.uniform1i(gl.getUniformLocation(direct_shader, "u_sampler"), 0);
 }
 
 export function submit_lights(){
     var lv0 = light_vec0.clone().transform_mat4_dir(get()).normalize();
     var lv1 = light_vec1.clone().transform_mat4_dir(get()).normalize();
-    gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec0"), lv0.x, lv0.y, lv0.z);
-    gl.uniform3f(gl.getUniformLocation(shader, "u_light_vec1"), lv1.x, lv1.y, lv1.z);
+    gl.uniform3f(gl.getUniformLocation(direct_shader, "u_light_vec0"), lv0.x, lv0.y, lv0.z);
+    gl.uniform3f(gl.getUniformLocation(direct_shader, "u_light_vec1"), lv1.x, lv1.y, lv1.z);
 }
 
 export function begin_tris(){
@@ -351,8 +350,8 @@ export function texcoord(u, v){
 }
 
 export function position(x, y, z){
-    switch (shader){
-        case color_shader:
+    switch (shader_id){
+        case 0:
             var f32offset = vcount * 4;
             var u8offset = vcount * 4 * 4 + 3*4;
             f32[f32offset + 0] = x;
@@ -361,7 +360,7 @@ export function position(x, y, z){
             u8.set(_color, u8offset);
             break;
 
-        case texture_shader:
+        case 1:
             var f32offset = vcount * 6;
             var u8offset = vcount * 6 * 4 + 5*4;
             f32[f32offset + 0] = x;
@@ -371,7 +370,7 @@ export function position(x, y, z){
             u8.set(_color, u8offset);
             break;
 
-        case direct_shader:
+        case 2:
             var f32offset = vcount * 9;
             var u8offset = (f32offset + 8) * 4;
             f32[f32offset + 0] = x;

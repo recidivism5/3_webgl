@@ -6,6 +6,16 @@ import {Vec3} from "./vec3.js"
 import {Player} from "./player.js"
 import { Block } from "./block.js"
 
+function cheap_hash(str) {
+    let hash = 0;
+    for (let i = 0, len = str.length; i < len; i++) {
+        let chr = str.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+}
+
 export class Chunk {
 
     static width = 16;
@@ -30,9 +40,30 @@ export class Chunk {
     }
 
     generate(){
+        var heights = [];
+        for (var z = 0; z <= Chunk.width; z+=4){
+            for (var x = 0; x <= Chunk.width; x+=4){
+                var hash = cheap_hash(
+                    x.toString() + (this.x*16).toString() + "," +
+                    z.toString() + (this.z*16).toString()
+                );
+                hash = Math.abs(hash);
+                var height = 1 + hash % 5;
+                heights.push(height);
+            }
+        }
         for (var z = 0; z < Chunk.width; z++){
             for (var x = 0; x < Chunk.width; x++){
-                this.set_block(x, 0, z, 1, 5, 15);
+                var zd = Math.floor(z / 4);
+                var zm = (z % 4) / 4;
+                var xd = Math.floor(x / 4);
+                var xm = (x % 4) / 4;
+                var a = heights[zd*4 + xd] + zm * (heights[(zd+1)*4 + xd] - heights[zd*4 + xd]);
+                var b = heights[zd*4 + xd+1] + zm * (heights[(zd+1)*4 + xd+1] - heights[zd*4 + xd+1]);
+                var height = Math.floor(a + xm * (b - a));
+                for (var i = 0; i < height; i++){
+                    this.set_block(x, i, z, 1, 5, 15);
+                }
             }
         }
     }

@@ -5,7 +5,7 @@ import * as Graphics from "./graphics.js"
 var chunks = new Map();
 
 export function init(){
-    for (var z = -2; z <= 2; z++){
+    for (var z = -4; z <= 4; z++){
         for (var x = -2; x <= 2; x++){
             var chunk = new Chunk(x, z);
             chunks.set(chunk.get_key(), chunk);

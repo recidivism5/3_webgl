@@ -10,8 +10,6 @@ import {gl, canvas} from "./graphics.js"
 import * as Palette from "./palette.js"
 
 export var player;
-var dude;
-var head;
 export var entities = [];
 
 async function main(){
@@ -33,12 +31,14 @@ async function main(){
     Terrain.set_block(6,1,3, 2,4,0);
 
     player = new Player(4, 4, 4);
-    dude = new Dude(0,4,0);
-    head = new Head(4,4,0);
 
-    entities.push(player);
-    entities.push(dude);
-    entities.push(head);
+    entities.push(new Dude(0,4,0));
+    entities.push(new Head(4,4,0,1));
+    entities.push(new Head(4,4,0,1));
+    entities.push(new Head(4,4,0,.5));
+    entities.push(new Head(4,4,0,.25));
+    entities.push(new Head(4,4,0,.125));
+    entities.push(new Head(4,4,0,.0625));
 
     Input.init();
 
@@ -54,14 +54,16 @@ const SEC_PER_TICK = 1.0 / TICK_RATE;
 
 export function tick(){
     player.tick();
-    dude.tick();
-    head.tick();
+    for (var i = 0; i < entities.length; i++){
+        entities[i].tick();
+    }
 }
 
 export function interpolate(t){
     player.interpolate(t);
-    dude.interpolate(t);
-    head.interpolate(t);
+    for (var i = 0; i < entities.length; i++){
+        entities[i].interpolate(t);
+    }
 }
 
 export function main_loop(now){
@@ -115,8 +117,9 @@ export function main_loop(now){
         Graphics.pop();
     }
 
-    dude.draw(now);
-    head.draw(now);
+    for (var i = 0; i < entities.length; i++){
+        entities[i].draw(now);
+    }
 
     Gui.draw();
     
