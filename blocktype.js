@@ -244,6 +244,8 @@ export class BlockType {
         });
     }
 
+    static texcoords = [[0,1],[0,0],[1,0],[1,0],[1,1],[0,1]];
+
     draw_face(x, y, z, face, brightness, color){
         Graphics.color(
             brightness * color.r,
@@ -263,12 +265,10 @@ export class BlockType {
                 }
                 break;
             case 4:
-                const indices = [0,1,2,2,3,0];
-                const texcoords = [[0,1],[0,0],[1,0],[1,0],[1,1],[0,1]];
-                for (var i = 0; i < indices.length; i++){
-                    var tc = texcoords[i];
+                for (var i = 0; i < BlockType.quad_indices.length; i++){
+                    var tc = BlockType.texcoords[i];
                     Graphics.texcoord(tc[0],tc[1]);
-                    var pos = this.positions[face[indices[i]]];
+                    var pos = this.positions[face[BlockType.quad_indices[i]]];
                     Graphics.position(
                         x + pos.x,
                         y + pos.y,
@@ -286,6 +286,14 @@ export class BlockType {
         });
     }
 
+    static uv_free_axes = [
+        [1,2],
+        [0,2],
+        [0,1]
+    ];
+
+    static quad_indices = [0,1,2,2,3,0];
+
     draw_clipped_face(x, y, z, component, index, neighbor_id, color){
         var face = this.clipped_faces[index][neighbor_id];
         if (face == null) return;
@@ -296,12 +304,7 @@ export class BlockType {
             brightness * color.b,
             color.a
         );
-        const uv_free_axes = [
-            [1,2],
-            [0,2],
-            [0,1]
-        ];
-        var fa = uv_free_axes[component];
+        var fa = BlockType.uv_free_axes[component];
         switch (face.length){
             case 3:
                 for (var i = 0; i < face.length; i++){
@@ -318,9 +321,8 @@ export class BlockType {
                 }
                 break;
             case 4:
-                const indices = [0,1,2,2,3,0];
-                for (var i = 0; i < indices.length; i++){
-                    var pos = this.positions[face[indices[i]]];
+                for (var i = 0; i < BlockType.quad_indices.length; i++){
+                    var pos = this.positions[face[BlockType.quad_indices[i]]];
                     Graphics.texcoord(
                         pos.get_component(fa[0]),
                         pos.get_component(fa[1]),

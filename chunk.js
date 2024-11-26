@@ -19,7 +19,7 @@ function cheap_hash(str) {
 export class Chunk {
 
     static width = 16;
-    static height = 16;
+    static height = 128;
 
     static get_key(x, z){
         return x.toString(16) + "," + z.toString(16);
@@ -84,42 +84,13 @@ export class Chunk {
         if (this.neighbors[5] != undefined) Graphics.update_mesh(this.neighbors[5].mesh);
     }
 
-    draw_block(x, y, z, type, color){
-        BlockType.iterate_borders((component, direction, index, plane)=>{
-            var neighbor_pos = new Vec3(x, y, z);
-            neighbor_pos.set_component(
-                component,
-                neighbor_pos.get_component(component) + direction
-            );
-            var neighbor_id = this.get_block_id(
-                neighbor_pos.x,
-                neighbor_pos.y,
-                neighbor_pos.z
-            );
-            if (neighbor_id == -1){
-                neighbor_pos.set_component(
-                    component,
-                    Terrain.get_block_offset(neighbor_pos.get_component(component))
-                );
-                var neighbor_chunk = this.neighbors[index];
-                if (neighbor_chunk == undefined) return;
-                neighbor_id = neighbor_chunk.get_block_id(
-                    neighbor_pos.x,
-                    neighbor_pos.y,
-                    neighbor_pos.z
-                );
-            }
-            type.draw_clipped_face(x, y, z, component, index, neighbor_id, color);
-        });
-        type.draw_non_border_faces(x, y, z, color);
-    }
-
     draw(){
         Graphics.push();
         Graphics.translate(this.x * Chunk.width, 0, this.z * Chunk.width);
         
         Graphics.draw_mesh(this.mesh, ()=>{
             this.update_neighbors();
+            var neighbor_pos = new Vec3();
             for (var y = 0; y < Chunk.height; y++){
                 for (var z = 0; z < Chunk.width; z++){
                     for (var x = 0; x < Chunk.width; x++){
@@ -127,7 +98,41 @@ export class Chunk {
                         if (id == 0) continue;
                         var color_id = this.get_block_color_id(x, y, z);
                         var color = Palette.get(color_id);
-                        this.draw_block(x, y, z, BlockType.get(id), color);
+                        var type = BlockType.get(id);
+                        var index = 0;
+                        for (var component = 0; component < 3; component++){
+                            for (var direction = -1; direction <= 1; direction += 2){
+                                neighbor_pos.set(x, y, z);
+                                neighbor_pos.add_component(
+                                    component,
+                                    direction
+                                );
+                                var neighbor_id = this.get_block_id(
+                                    neighbor_pos.x,
+                                    neighbor_pos.y,
+                                    neighbor_pos.z
+                                );
+                                if (neighbor_id == -1){
+                                    neighbor_pos.set_component(
+                                        component,
+                                        Terrain.get_block_offset(neighbor_pos.get_component(component))
+                                    );
+                                    var neighbor_chunk = this.neighbors[index];
+                                    if (neighbor_chunk == undefined){
+                                        index++;
+                                        continue;
+                                    }
+                                    neighbor_id = neighbor_chunk.get_block_id(
+                                        neighbor_pos.x,
+                                        neighbor_pos.y,
+                                        neighbor_pos.z
+                                    );
+                                }
+                                type.draw_clipped_face(x, y, z, component, index, neighbor_id, color);
+                                index++;
+                            }
+                        }
+                        type.draw_non_border_faces(x, y, z, color);
                     }
                 }
             }
